@@ -5,19 +5,30 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Test shortcut core
-        run: swift test
-      - name: Package app
-        run: ./scripts/package.sh
+      - name: Test app and shortcut engine
+        run: swift test -Xswiftc -warnings-as-errors
+      - name: Test release version guards
+        run: python3 -m unittest discover -s Tests/ReleasePipelineTests
+      - name: Build universal development artifacts
+        run: ./scripts/package.sh --universal
+      - name: Verify both CPU architectures and bundle signature
+        run: |
+          ./scripts/sign-app.sh --verify-universal dist/OpenRight.app
+          codesign --verify --deep --strict dist/OpenRight.app
       - uses: actions/upload-artifact@v4
         with:
-          name: OpenRight-macOS
+          name: OpenRight-universal-development-not-notarized
           path: |
             dist/OpenRight-*.zip
             dist/OpenRight-*.zip.sha256
+            dist/OpenRight-*.dmg
+            dist/OpenRight-*.dmg.sha256
           if-no-files-found: error

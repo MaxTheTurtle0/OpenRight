@@ -6,6 +6,7 @@ import OpenRightCore
 
 @MainActor
 final class AppModel: ObservableObject {
+    let updates = UpdateService()
     @Published var preferences = Preferences()
     @Published var runningApps: [AppCandidate] = []
     @Published var installedApps: [AppCandidate] = []

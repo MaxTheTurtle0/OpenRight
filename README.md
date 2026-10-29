@@ -6,9 +6,15 @@ OpenRight is a small, MIT-licensed macOS app switcher. Hold Right Command and pr
 
 This is an independent implementation inspired by [rcmd](https://lowtechguys.com/rcmd/). It does not contain rcmd code, assets, or configuration.
 
-## Try it locally
+## Download
 
-Requires macOS 13 or later. Building requires Xcode or the Xcode Command Line Tools with Swift 5.9 or later. The build uses the current Mac's architecture and has no third-party dependencies.
+Download the latest DMG from [GitHub Releases](https://github.com/MaxTheTurtle0/OpenRight/releases/latest), open it, and drag OpenRight into Applications. The release pipeline requires Developer ID signing and Apple notarization before publishing. Universal releases support Apple Silicon and Intel Macs running macOS 13 or later.
+
+OpenRight needs Accessibility access to handle global shortcuts. Grant it in System Settings when the app asks.
+
+## Build locally
+
+Requires macOS 13 or later. Building requires Xcode or the Xcode Command Line Tools with Swift 5.9 or later. The local build uses the current Mac's architecture. [Sparkle](https://sparkle-project.org/) is the only third-party runtime dependency and provides signed app updates.
 
 ```sh
 ./scripts/build.sh
@@ -47,15 +53,23 @@ OpenRight uses translated key characters, so letter assignments follow the curre
 
 ## Scope and privacy
 
-OpenRight 0.1 focuses on app switching, pinned launch shortcuts, and app search. It does not implement rcmd's newer window switcher, window search, Spaces controls, Lenses, or saved workspaces. It uses public macOS APIs. Switching between Spaces follows macOS behavior and Mission Control settings.
+OpenRight focuses on app switching, pinned launch shortcuts, app search, and signed in-app updates. It does not implement rcmd's newer window switcher, window search, Spaces controls, Lenses, or saved workspaces. It uses public macOS APIs. Switching between Spaces follows macOS behavior and Mission Control settings.
 
-The app makes no network requests, records no typed keys, and does not read window contents. Preferences stay in:
+The app records no typed keys, collects no analytics, and does not read window contents. Update checks and downloads contact GitHub. Shortcut preferences stay in:
 
 ```text
 ~/Library/Application Support/OpenRight/preferences.json
 ```
 
+Sparkle stores update preferences in macOS user defaults. Its private update-signing key stays in the maintainer's Keychain; the app only contains the public verification key.
+
 The core shortcut resolver and fuzzy search are separate from AppKit, so their behavior can be tested without global keyboard permissions.
+
+## Updates
+
+Choose **Check for Updates…** from the OpenRight menu to look for a newer release. Settings also includes an automatic-checks toggle. Sparkle verifies each downloaded update with the public Ed25519 key embedded in the app before extracting it. You choose when to install and relaunch.
+
+The update feed is hosted on GitHub Releases. Building a new version alone does not publish an update; maintainers must sign and notarize it, generate its appcast, and publish the release. See [release instructions](docs/releasing.md).
 
 ## Build and verify
 
@@ -65,7 +79,7 @@ swift test
 ./scripts/package.sh
 ```
 
-`package.sh` creates a versioned ZIP and SHA-256 checksum in `dist`. The ZIP contains a build for the current architecture. CI runs the tests and builds the app on macOS. See [the manual verification checklist](docs/verification.md) for checks that require macOS permissions and a real keyboard.
+`package.sh` creates a versioned ZIP, DMG, and SHA-256 checksums in `dist`. Use `./scripts/package.sh --universal` for both Mac architectures. Local packages are development builds. The signed release process is documented in [docs/releasing.md](docs/releasing.md). CI runs the tests and packages the universal app on macOS. See [the manual verification checklist](docs/verification.md) for checks that require macOS permissions and a real keyboard.
 
 Source layout:
 

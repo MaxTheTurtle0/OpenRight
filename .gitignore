@@ -2,3 +2,9 @@
 dist/
 .DS_Store
 *.xcuserstate
+__pycache__/
+*.pyc
+.env
+*.p12
+*.p8
+*.key

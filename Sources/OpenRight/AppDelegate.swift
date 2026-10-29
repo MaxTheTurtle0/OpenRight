@@ -10,7 +10,7 @@ final class LauncherPanel: NSPanel {
 }
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWindowDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWindowDelegate, NSMenuItemValidation {
     let model = AppModel()
     let keyboard = KeyboardMonitor()
     private var statusItem: NSStatusItem!
@@ -24,6 +24,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     private var wakeObserver: NSObjectProtocol?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        model.updates.startIfConfigured()
         installMainMenu()
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         statusItem.button?.image = NSImage(systemSymbolName: "command", accessibilityDescription: "OpenRight")
@@ -58,6 +59,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         let appItem = NSMenuItem()
         let appMenu = NSMenu(title: "OpenRight")
         addItem("Settings…", action: #selector(settingsFromMenu), to: appMenu, key: ",")
+        addItem("Check for Updates…", action: #selector(checkForUpdates), to: appMenu)
         appMenu.addItem(.separator())
         addItem("Quit OpenRight", action: #selector(quit), to: appMenu, key: "q")
         appItem.submenu = appMenu
@@ -134,6 +136,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         menu.addItem(.separator())
         addItem("Search apps…", action: #selector(searchFromMenu), to: menu)
         addItem("Settings…", action: #selector(settingsFromMenu), to: menu, key: ",")
+        addItem("Check for Updates…", action: #selector(checkForUpdates), to: menu)
         addItem(model.isPaused ? "Resume shortcuts" : "Pause shortcuts", action: #selector(togglePause), to: menu)
         menu.addItem(.separator())
         addItem("Quit OpenRight", action: #selector(quit), to: menu, key: "q")
@@ -147,6 +150,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
     @objc private func searchFromMenu() { showLauncher() }
     @objc private func settingsFromMenu() { showSettings() }
+    @objc private func checkForUpdates() { model.updates.checkForUpdates() }
+
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        if menuItem.action == #selector(checkForUpdates) { return model.updates.canCheckForUpdates }
+        return true
+    }
     @objc private func togglePause() { model.isPaused.toggle(); updateKeyboard() }
     @objc private func quit() { NSApp.terminate(nil) }
 

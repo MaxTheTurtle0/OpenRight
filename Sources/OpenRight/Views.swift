@@ -130,6 +130,7 @@ struct SettingsView: View {
                 .toggleStyle(.switch)
                 .accessibilityIdentifier("login-toggle")
             }
+            UpdatesSettingsView(service: model.updates)
             HStack(spacing: 9) {
                 Image(systemName: "space").font(.system(size: 16)).foregroundStyle(.teal)
                 Text("\(triggerTitle(model.preferences.trigger)) + Space opens app search.")
@@ -230,6 +231,8 @@ struct SettingsView: View {
                             Text("OpenRight").font(.system(size: 23, weight: .bold, design: .rounded))
                             Text("An open-source app switcher for macOS.")
                                 .font(.system(size: 13)).foregroundStyle(.secondary)
+                            Text(appVersionDescription)
+                                .font(.system(size: 11)).foregroundStyle(.secondary)
                         }
                     }
                     Divider()
@@ -244,13 +247,18 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Label("Your activity stays on this Mac", systemImage: "lock.shield")
                         .font(.system(size: 13, weight: .semibold))
-                    Text("OpenRight does not record typed text, collect analytics, or send app usage to a server. Settings and pinned keys are stored locally.")
+                    Text("OpenRight does not record typed text or collect analytics. Settings and pinned keys stay on this Mac. Update checks and downloads contact GitHub.")
                         .font(.system(size: 12)).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
             Text("Independent implementation. MIT licensed.")
                 .font(.system(size: 12)).foregroundStyle(.secondary)
+            HStack(spacing: 16) {
+                Link("Source code", destination: URL(string: "https://github.com/MaxTheTurtle0/OpenRight")!)
+                Link("Release notes", destination: URL(string: "https://github.com/MaxTheTurtle0/OpenRight/releases")!)
+            }
+            .font(.system(size: 12))
             Button("Restore default settings", action: model.restoreDefaults)
                 .accessibilityIdentifier("restore-defaults")
         }
@@ -274,6 +282,53 @@ struct SettingsView: View {
             Text(detail).font(.system(size: 12))
         }
     }
+}
+
+@MainActor
+private struct UpdatesSettingsView: View {
+    @ObservedObject var service: UpdateService
+
+    var body: some View {
+        SettingsCard {
+            VStack(alignment: .leading, spacing: 13) {
+                HStack {
+                    Label("Updates", systemImage: "arrow.down.circle")
+                        .font(.system(size: 13, weight: .semibold))
+                    Spacer()
+                    Text(appVersionDescription).font(.system(size: 11)).foregroundStyle(.secondary)
+                }
+                Toggle(isOn: Binding(
+                    get: { service.automaticallyChecksForUpdates },
+                    set: { service.setAutomaticallyChecksForUpdates($0) }
+                )) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Automatically check for updates").font(.system(size: 13, weight: .medium))
+                        Text("Find signed releases on GitHub. You choose when to install.")
+                            .font(.system(size: 11)).foregroundStyle(.secondary)
+                    }
+                }
+                .toggleStyle(.switch)
+                .disabled(!service.isConfigured)
+                .accessibilityIdentifier("automatic-update-checks")
+                HStack(spacing: 14) {
+                    Text(service.statusDescription)
+                        .font(.system(size: 11)).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 0)
+                    Button("Check for Updates…", action: service.checkForUpdates)
+                        .disabled(!service.canCheckForUpdates)
+                        .accessibilityIdentifier("check-for-updates")
+                }
+            }
+        }
+    }
+}
+
+private var appVersionDescription: String {
+    guard let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String else {
+        return "Development build"
+    }
+    return "Version \(version)"
 }
 
 private enum SettingsSection: String, CaseIterable, Identifiable {

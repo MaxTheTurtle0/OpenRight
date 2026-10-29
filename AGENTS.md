@@ -1,6 +1,6 @@
 # OpenRight
 
-Native macOS app. Swift 5.9 language mode, macOS 13 minimum. No third-party dependencies.
+Native macOS app. Swift 5.9 language mode, macOS 13 minimum. Sparkle is the only third-party runtime dependency and handles signed application updates.
 
 Keep shortcut resolution and search in OpenRightCore, free of AppKit. Use public macOS APIs.
 Run `swift test` and `./scripts/build.sh` before handing back changes. Do not intercept ordinary left Command shortcuts. Never log typed keys or window contents.
