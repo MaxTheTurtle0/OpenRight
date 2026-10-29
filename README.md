@@ -37,7 +37,7 @@ The installer preserves an existing app with an `.app.backup` suffix. Rename tha
 | Right Command + Option + letter or digit | Pin that key to the focused app |
 | Right Command + pinned key | Focus the pinned app, or launch it if it is closed |
 | Right Command + Space | Search installed apps |
-| Hold Right Command | Show app and key hints |
+| Hold Right Command for 1 second | Show app and key hints |
 | Escape in search | Close the launcher |
 
 Search also opens from the menu bar. Type part of an app's name, use the arrow keys to select a result, and press Return to focus or launch it.

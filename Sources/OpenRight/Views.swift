@@ -115,7 +115,7 @@ struct SettingsView: View {
                     Toggle(isOn: $model.preferences.showHints) {
                         VStack(alignment: .leading, spacing: 3) {
                             Text("Show key hints").font(.system(size: 13, weight: .medium))
-                            Text("See the app list while you hold the trigger.")
+                            Text("Hold the trigger for 1 second to see the app list.")
                                 .font(.system(size: 11)).foregroundStyle(.secondary)
                         }
                     }

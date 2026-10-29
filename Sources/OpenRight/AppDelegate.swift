@@ -180,7 +180,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             guard model.preferences.showHints, !keyboard.launcherVisible else { return }
             let work = DispatchWorkItem { [weak self] in self?.showHints() }
             hintsWork = work
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.22, execute: work)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: work)
         } else {
             sessionRecentIDs = []
             logicalFrontmostID = nil
