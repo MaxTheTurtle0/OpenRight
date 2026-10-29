@@ -26,6 +26,8 @@ If Settings still reports missing access while macOS shows its switch as enabled
 
 For development, `./scripts/run.sh` builds when necessary and opens `dist/OpenRight.app`.
 
+The installer preserves an existing app with an `.app.backup` suffix. Rename that backup to `.app` to restore it. This keeps old copies out of app pickers and Spotlight.
+
 ## Shortcuts
 
 | Shortcut | Action |

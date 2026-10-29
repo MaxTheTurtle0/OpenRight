@@ -13,7 +13,7 @@ trap 'rm -rf "$staging_dir"' EXIT
 ditto dist/OpenRight.app "$staging_dir/OpenRight.app"
 codesign --verify --deep --strict "$staging_dir/OpenRight.app"
 if [[ -e "$install_dir/OpenRight.app" ]]; then
-    backup_path="$install_dir/OpenRight.previous.$(date +%Y%m%d%H%M%S).app"
+    backup_path="$install_dir/OpenRight.previous.$(date +%Y%m%d%H%M%S).app.backup"
     if [[ -e "$backup_path" ]]; then
         printf 'Backup already exists: %s\n' "$backup_path" >&2
         exit 1
