@@ -37,12 +37,11 @@ The installer preserves an existing app with an `.app.backup` suffix. Rename tha
 | Right Command + Option + letter or digit | Pin that key to the focused app |
 | Right Command + pinned key | Focus the pinned app, or launch it if it is closed |
 | Right Command + Space | Search installed apps |
-| Hold Right Command for 1 second | Show app and key hints |
 | Escape in search | Close the launcher |
 
 Search also opens from the menu bar. Type part of an app's name, use the arrow keys to select a result, and press Return to focus or launch it.
 
-Settings let you choose Right Command, Right Option, or Control + Option as the trigger. With Right Option or Control + Option, add Command to pin the focused app. You can also add and remove pins in Settings, choose each pin's repeat behavior, disable selected keys, hide hints, pause shortcuts, and enable launch at login.
+Settings let you choose Right Command, Right Option, or Control + Option as the trigger. With Right Option or Control + Option, add Command to pin the focused app. You can also add and remove pins in Settings, choose each pin's repeat behavior, disable selected keys, pause shortcuts, and enable launch at login.
 
 OpenRight uses translated key characters, so letter assignments follow the current keyboard layout. Unmapped shortcuts pass through to the focused app. Secure Input can prevent a global keyboard listener from receiving events.
 

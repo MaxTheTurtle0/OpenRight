@@ -62,7 +62,6 @@ public struct Preferences: Codable, Equatable, Sendable {
     public var trigger: Trigger
     public var repeatBehavior: RepeatBehavior
     public var disabledKeys: String
-    public var showHints: Bool
     public var launchAtLogin: Bool
     public var bindings: [AppBinding]
 
@@ -70,20 +69,18 @@ public struct Preferences: Codable, Equatable, Sendable {
         trigger: Trigger = .rightCommand,
         repeatBehavior: RepeatBehavior = .cycle,
         disabledKeys: String = "",
-        showHints: Bool = true,
         launchAtLogin: Bool = false,
         bindings: [AppBinding] = []
     ) {
         self.trigger = trigger
         self.repeatBehavior = repeatBehavior
         self.disabledKeys = disabledKeys
-        self.showHints = showHints
         self.launchAtLogin = launchAtLogin
         self.bindings = bindings
     }
 
     private enum CodingKeys: String, CodingKey {
-        case trigger, repeatBehavior, disabledKeys, showHints, launchAtLogin, bindings
+        case trigger, repeatBehavior, disabledKeys, launchAtLogin, bindings
     }
 
     public init(from decoder: Decoder) throws {
@@ -92,7 +89,6 @@ public struct Preferences: Codable, Equatable, Sendable {
             trigger: (try? values.decode(Trigger.self, forKey: .trigger)) ?? .rightCommand,
             repeatBehavior: (try? values.decode(RepeatBehavior.self, forKey: .repeatBehavior)) ?? .cycle,
             disabledKeys: (try? values.decode(String.self, forKey: .disabledKeys)) ?? "",
-            showHints: (try? values.decode(Bool.self, forKey: .showHints)) ?? true,
             launchAtLogin: (try? values.decode(Bool.self, forKey: .launchAtLogin)) ?? false,
             bindings: (try? values.decode([LossyBinding].self, forKey: .bindings))?.compactMap(\.value) ?? []
         )

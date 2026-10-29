@@ -112,16 +112,6 @@ struct SettingsView: View {
                         .accessibilityIdentifier("repeat-picker")
                     }
                     Divider()
-                    Toggle(isOn: $model.preferences.showHints) {
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text("Show key hints").font(.system(size: 13, weight: .medium))
-                            Text("Hold the trigger for 1 second to see the app list.")
-                                .font(.system(size: 11)).foregroundStyle(.secondary)
-                        }
-                    }
-                    .toggleStyle(.switch)
-                    .accessibilityIdentifier("hints-toggle")
-                    Divider()
                     settingRow("Disabled keys", detail: "These letters and numbers keep their usual shortcuts.") {
                         TextField("For example, qw", text: $model.preferences.disabledKeys)
                             .textFieldStyle(.roundedBorder).frame(width: 172)
@@ -404,89 +394,6 @@ private struct BindingsEditor: View {
             if !filteredApps.contains(where: { $0.id == selectedAppID }) { selectedAppID = "" }
         }
     }
-}
-
-@MainActor
-struct HintsView: View {
-    @ObservedObject var model: AppModel
-
-    private var hints: [HintEntry] {
-        let disabled = Set(model.preferences.disabledKeys.lowercased().map(String.init))
-        let pinned = Dictionary(model.preferences.bindings.map { ($0.key, $0) }, uniquingKeysWith: { first, _ in first })
-        var groups: [String: [AppCandidate]] = [:]
-        for app in model.runningApps { groups[firstKey(app.name), default: []].append(app) }
-        let keys = Set(groups.keys).union(pinned.keys).filter { !$0.isEmpty && !disabled.contains($0) }.sorted()
-        return keys.compactMap { key in
-            if let binding = pinned[key] {
-                return HintEntry(key: key, name: binding.name, path: binding.path, detail: "Pinned", pinned: true)
-            }
-            guard let apps = groups[key], let first = apps.sorted(by: {
-                let leftRank = rank($0.id), rightRank = rank($1.id)
-                return leftRank == rightRank ? $0.name.localizedStandardCompare($1.name) == .orderedAscending : leftRank < rightRank
-            }).first else { return nil }
-            return HintEntry(key: key, name: first.name, path: first.path, detail: apps.count > 1 ? "\(apps.count) apps share this key" : "", pinned: false)
-        }
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Image(systemName: "command.square.fill").foregroundStyle(.teal)
-                Text("OpenRight").font(.system(size: 14, weight: .semibold))
-                Spacer()
-                Text(triggerTitle(model.preferences.trigger)).font(.system(size: 11)).foregroundStyle(.secondary)
-            }
-            if hints.isEmpty {
-                Text("No app keys available").font(.system(size: 13)).foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity).padding(.vertical, 20)
-            } else {
-                ScrollView {
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: 10) {
-                        ForEach(hints) { hint in
-                            HStack(spacing: 8) {
-                                KeyCap(key: hint.key.uppercased())
-                                AppIcon(path: hint.path, size: 25)
-                                VStack(alignment: .leading, spacing: 3) {
-                                    Text(hint.name).font(.system(size: 11, weight: .medium)).lineLimit(1)
-                                    if !hint.detail.isEmpty { Text(hint.detail).font(.system(size: 9)).foregroundStyle(.secondary).lineLimit(1) }
-                                }
-                                Spacer(minLength: 0)
-                            }
-                            .padding(.vertical, 7).padding(.horizontal, 6)
-                            .background(Color.primary.opacity(0.035))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                            .accessibilityLabel("\(hint.key.uppercased()), \(hint.name), \(hint.detail)")
-                        }
-                    }
-                }
-                .frame(height: min(CGFloat((hints.count + 2) / 3) * 57, 300))
-            }
-            Divider()
-            HStack(spacing: 7) {
-                KeyCap(key: "Space")
-                Text("Search all apps").font(.system(size: 11)).foregroundStyle(.secondary)
-                Spacer()
-                Text("Add \(pinModifier(model.preferences.trigger)) + key to pin").font(.system(size: 10)).foregroundStyle(.secondary)
-            }
-        }
-        .padding(20)
-        .frame(width: 650)
-        .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 18))
-        .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(Color.primary.opacity(0.08)))
-        .tint(.teal)
-    }
-
-    private func rank(_ id: String) -> Int { model.recentIDs.firstIndex(of: id) ?? Int.max }
-}
-
-private struct HintEntry: Identifiable {
-    var key: String
-    var name: String
-    var path: String
-    var detail: String
-    var pinned: Bool
-    var id: String { key }
 }
 
 @MainActor

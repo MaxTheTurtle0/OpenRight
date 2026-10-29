@@ -15,10 +15,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     let keyboard = KeyboardMonitor()
     private var statusItem: NSStatusItem!
     private var settingsWindow: NSWindow?
-    private var hintsPanel: NSPanel?
     private var launcherPanel: LauncherPanel?
     private var permissionTimer: Timer?
-    private var hintsWork: DispatchWorkItem?
     private var sessionRecentIDs: [String] = []
     private var logicalFrontmostID: String?
     private var sessionHiddenStates: [String: Bool] = [:]
@@ -39,7 +37,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         keyboard.onTriggerChanged = { [weak self] held in self?.triggerChanged(held) }
         keyboard.onKey = { [weak self] key, assigning in self?.handleKey(key, assigning: assigning) ?? false }
         keyboard.onLauncher = { [weak self] in DispatchQueue.main.async { self?.showLauncher() } }
-        keyboard.onCancel = { [weak self] in self?.hideHints() }
         model.$isPaused.dropFirst().sink { [weak self] _ in DispatchQueue.main.async { self?.updateKeyboard() } }.store(in: &subscriptions)
         model.$conflictingAppRunning.dropFirst().sink { [weak self] _ in DispatchQueue.main.async { self?.updateKeyboard() } }.store(in: &subscriptions)
         permissionTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
@@ -119,7 +116,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         if enabled != keyboard.enabled { keyboard.enabled = enabled }
         if statusItem?.button?.appearsDisabled != !enabled { statusItem?.button?.appearsDisabled = !enabled }
         if statusItem?.button?.toolTip != statusText { statusItem?.button?.toolTip = statusText }
-        if !keyboard.enabled { hideHints() }
     }
 
     private var statusText: String {
@@ -156,7 +152,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
     func showSettings() {
         dismissLauncher()
-        hideHints()
         if settingsWindow == nil {
             let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 820, height: 650),
                                   styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
@@ -172,15 +167,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     }
 
     private func triggerChanged(_ held: Bool) {
-        hideHints()
         if held {
             sessionRecentIDs = model.recentIDs
             logicalFrontmostID = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
             sessionHiddenStates = [:]
-            guard model.preferences.showHints, !keyboard.launcherVisible else { return }
-            let work = DispatchWorkItem { [weak self] in self?.showHints() }
-            hintsWork = work
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: work)
         } else {
             sessionRecentIDs = []
             logicalFrontmostID = nil
@@ -222,33 +212,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         return true
     }
 
-    private func showHints() {
-        guard keyboard.enabled, keyboard.isTriggerHeld, !keyboard.launcherVisible else { return }
-        if hintsPanel == nil {
-            let panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 680, height: 390),
-                                styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
-            panel.level = .floating
-            panel.isOpaque = false
-            panel.backgroundColor = .clear
-            panel.hasShadow = true
-            panel.ignoresMouseEvents = true
-            panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-            panel.contentView = NSHostingView(rootView: HintsView(model: model))
-            hintsPanel = panel
-        }
-        if let view = hintsPanel?.contentView { hintsPanel?.setContentSize(view.fittingSize) }
-        hintsPanel?.center()
-        hintsPanel?.orderFrontRegardless()
-    }
-
-    private func hideHints() {
-        hintsWork?.cancel()
-        hintsWork = nil
-        hintsPanel?.orderOut(nil)
-    }
-
     func showLauncher() {
-        hideHints()
         keyboard.launcherVisible = true
         model.searchQuery = ""
         model.selectedSearchIndex = 0

@@ -8,7 +8,6 @@ final class KeyboardMonitor {
     var onTriggerChanged: ((Bool) -> Void)?
     var onKey: ((String, Bool) -> Bool)?
     var onLauncher: (() -> Void)?
-    var onCancel: (() -> Void)?
     var trigger: Trigger = .rightCommand
     var enabled = false { didSet { if !enabled { resetSession() } } }
     var launcherVisible = false
@@ -79,7 +78,6 @@ final class KeyboardMonitor {
         guard type == .keyDown, held, !launcherVisible, !cancelled else { return false }
         if code == 53 {
             cancelled = true
-            onCancel?()
             suppressed.insert(code)
             return true
         }

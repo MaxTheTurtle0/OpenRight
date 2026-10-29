@@ -6,7 +6,7 @@ Completed:
 
 - `swift test -Xswiftc -warnings-as-errors`: 48 tests passed, no failures or compiler warnings.
 - Release app build and ad-hoc signature verification passed.
-- Settings, hint overlay, and launcher rendered through native AppKit/SwiftUI. The resulting images were inspected for layout.
+- Settings and launcher rendered through native AppKit/SwiftUI. The resulting images were inspected for layout.
 - Installed app opened successfully, displayed the permission setup and rcmd conflict, and opened its search field with typed input.
 - Fresh install and replacement install were exercised in a temporary directory. One current `.app` and one `.app.backup` remained, with the expected executable bytes.
 - Independent source review found and prompted fixes for consumed key repeats and disabled-key pinning. It rated the corrected implementation 8/10 for a local trial, with live global keyboard checks outstanding.

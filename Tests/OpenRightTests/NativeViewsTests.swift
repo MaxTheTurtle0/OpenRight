@@ -20,7 +20,6 @@ final class NativeViewsTests: XCTestCase {
             .appendingPathComponent(".build/verification")
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         try render(SettingsView(model: model), size: NSSize(width: 820, height: 650), to: folder.appendingPathComponent("settings.png"))
-        try render(HintsView(model: model), size: NSSize(width: 650, height: 300), to: folder.appendingPathComponent("hints.png"))
         try render(LauncherView(model: model, onDismiss: {}), size: NSSize(width: 590, height: 490), to: folder.appendingPathComponent("launcher.png"))
     }
 

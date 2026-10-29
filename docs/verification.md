@@ -13,7 +13,7 @@ Automated core tests cannot verify real keyboard events, Accessibility permissio
 
 ## Shortcut behavior
 
-- [ ] Hold Right Command. Hints appear without taking focus from the current app, then disappear on release.
+- [ ] Hold Right Command for several seconds. No popup appears.
 - [ ] Press Right Command + a running app's initial. The app gains focus.
 - [ ] Try three running apps with the same initial. Repeated presses while holding the trigger reach all three.
 - [ ] Choose Hide as the repeat behavior. A second press hides the focused app; another press brings it back.
@@ -42,7 +42,7 @@ Automated core tests cannot verify real keyboard events, Accessibility permissio
 ## macOS integration
 
 - [ ] Enable launch at login from the installed app. Confirm macOS reports its registration, then disable it again.
-- [ ] Sleep and wake the Mac. The listener resumes and no hints remain stuck on screen.
+- [ ] Sleep and wake the Mac. The listener resumes.
 - [ ] Lock and unlock the session. Shortcut behavior recovers.
 - [ ] Enable Secure Input in an app that supports it. Ordinary typing remains available and shortcut behavior recovers after Secure Input ends.
 - [ ] Activate an app on another Space. Behavior follows the current Mission Control setting for switching to an app's Space.

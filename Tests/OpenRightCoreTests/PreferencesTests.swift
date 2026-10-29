@@ -13,7 +13,6 @@ final class PreferencesTests: XCTestCase {
         let result = try JSONDecoder().decode(Preferences.self, from: Data(json.utf8))
         XCTAssertEqual(result.trigger, .rightCommand)
         XCTAssertEqual(result.repeatBehavior, .hide)
-        XCTAssertTrue(result.showHints)
         XCTAssertTrue(result.launchAtLogin)
         XCTAssertEqual(result.disabledKeys, "")
         XCTAssertEqual(result.bindings, [])
@@ -41,7 +40,7 @@ final class PreferencesTests: XCTestCase {
     }
 
     func testRoundTripPreservesSettings() throws {
-        let preferences = Preferences(trigger: .rightOption, repeatBehavior: .hide, disabledKeys: "aq", showHints: false, launchAtLogin: true, bindings: [AppBinding(key: "z", bundleID: "mail", name: "Mail", path: "/Mail.app", behavior: .hide)])
+        let preferences = Preferences(trigger: .rightOption, repeatBehavior: .hide, disabledKeys: "aq", launchAtLogin: true, bindings: [AppBinding(key: "z", bundleID: "mail", name: "Mail", path: "/Mail.app", behavior: .hide)])
         XCTAssertEqual(try JSONDecoder().decode(Preferences.self, from: JSONEncoder().encode(preferences)), preferences)
     }
 
