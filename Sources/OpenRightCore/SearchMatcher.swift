@@ -6,20 +6,17 @@ public enum SearchMatcher {
     public static func search(_ query: String, in candidates: [AppCandidate], recentIDs: [String] = []) -> [AppCandidate] {
         let query = ShortcutKey.folded(query).trimmingCharacters(in: .whitespacesAndNewlines)
         let recency = Dictionary(recentIDs.enumerated().reversed().map { ($0.element, $0.offset) }, uniquingKeysWith: { _, latest in latest })
-        return uniqueCandidates(candidates).compactMap { candidate -> (AppCandidate, (Int, Int))? in
-            guard let score = score(query, name: ShortcutKey.folded(candidate.name)) else { return nil }
-            return (candidate, score)
+        return uniqueCandidates(candidates).compactMap { candidate -> (app: AppCandidate, score: (Int, Int), name: String, rank: Int)? in
+            let name = ShortcutKey.folded(candidate.name)
+            guard let score = score(query, name: name) else { return nil }
+            return (candidate, score, name, recency[candidate.id] ?? Int.max)
         }.sorted { left, right in
-            if left.1 != right.1 { return left.1 < right.1 }
-            if left.0.isRunning != right.0.isRunning { return left.0.isRunning }
-            let leftRank = recency[left.0.id] ?? Int.max
-            let rightRank = recency[right.0.id] ?? Int.max
-            if leftRank != rightRank { return leftRank < rightRank }
-            let leftName = ShortcutKey.folded(left.0.name)
-            let rightName = ShortcutKey.folded(right.0.name)
-            if leftName != rightName { return leftName < rightName }
-            return left.0.id < right.0.id
-        }.map(\.0)
+            if left.score != right.score { return left.score < right.score }
+            if left.app.isRunning != right.app.isRunning { return left.app.isRunning }
+            if left.rank != right.rank { return left.rank < right.rank }
+            if left.name != right.name { return left.name < right.name }
+            return left.app.id < right.app.id
+        }.map(\.app)
     }
 
     private static func score(_ query: String, name: String) -> (Int, Int)? {

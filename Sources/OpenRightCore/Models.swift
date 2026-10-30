@@ -134,6 +134,13 @@ public enum ShortcutKey {
     /// Shortcut keys use a single ASCII letter or digit. Uppercase and accented
     /// letters normalize to the corresponding lowercase key where possible.
     public static func normalized(_ key: String) -> String? {
+        if key.utf8.count == 1, let byte = key.utf8.first {
+            switch byte {
+            case 48...57, 97...122: return key
+            case 65...90: return String(UnicodeScalar(byte + 32))
+            default: return nil
+            }
+        }
         let folded = folded(key)
         guard folded.utf8.count == 1, let byte = folded.utf8.first,
               (97...122).contains(byte) || (48...57).contains(byte) else { return nil }

@@ -72,4 +72,28 @@ final class PreferencesTests: XCTestCase {
         XCTAssertEqual(ShortcutKey.initial(for: "  Éditeur"), "e")
         XCTAssertNil(ShortcutKey.initial(for: ""))
     }
+
+    func testASCIIShortcutKeysAndInvalidCharacters() {
+        for character in "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" {
+            let key = String(character)
+            XCTAssertEqual(ShortcutKey.normalized(key), key.lowercased())
+        }
+        for key in ["!", "@", "[", "`", "{", "\u{0}", "\t", "\n", "\u{7f}", "ab", "1a", "\r\n"] {
+            XCTAssertNil(ShortcutKey.normalized(key))
+        }
+    }
+
+    func testUnicodeShortcutNormalizationRetainsFoundationFolding() {
+        let locale = Locale(identifier: "en_US_POSIX")
+        for key in ["é", "Ａ", "９", "ß", "İ", "œ", "각", "e\u{20DD}", "👩‍💻", "🇦🇹", "", "éx"] {
+            let folded = key.folding(options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive], locale: locale)
+                .lowercased(with: locale)
+            let expected: String?
+            if folded.utf8.count == 1, let byte = folded.utf8.first,
+               (97...122).contains(byte) || (48...57).contains(byte) {
+                expected = folded
+            } else { expected = nil }
+            XCTAssertEqual(ShortcutKey.normalized(key), expected, key)
+        }
+    }
 }

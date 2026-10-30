@@ -250,6 +250,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     func dismissLauncher() {
         launcherPanel?.orderOut(nil)
         keyboard.launcherVisible = false
+        // Each open installs a fresh host; release hidden search rows now.
+        launcherPanel?.contentView = nil
     }
 
     func windowDidResignKey(_ notification: Notification) {

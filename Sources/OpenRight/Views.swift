@@ -244,26 +244,25 @@ struct AppsSettingsView: View {
     @State private var query = ""
     @State private var addingPin = false
 
-    private var filter: String { query.trimmingCharacters(in: .whitespacesAndNewlines) }
-    private var filteredKey: String? {
-        guard let key = ShortcutKey.normalized(filter), model.shortcutGroups.contains(where: { $0.key == key }) else { return nil }
-        return key
-    }
-    private var groups: [AppShortcutGroup] {
-        model.shortcutGroups.compactMap { group in
+    var body: some View {
+        let snapshot = model.shortcutSnapshot
+        let filter = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        let filteredKey = ShortcutKey.normalized(filter).flatMap { key in
+            snapshot.groups.contains(where: { $0.key == key }) ? key : nil
+        }
+        let groups = snapshot.groups.compactMap { group -> AppShortcutGroup? in
             if let filteredKey { return group.key == filteredKey ? group : nil }
             if filter.isEmpty || group.key.localizedCaseInsensitiveContains(filter) { return group }
             let apps = group.apps.filter { $0.name.localizedCaseInsensitiveContains(filter) }
             return apps.isEmpty ? nil : AppShortcutGroup(key: group.key, apps: apps)
         }
-    }
-    private var unassigned: [AppCandidate] {
-        if filteredKey != nil { return [] }
-        return model.appsWithoutShortcut.filter { filter.isEmpty || $0.name.localizedCaseInsensitiveContains(filter) }
-    }
+        let unassigned = filteredKey == nil
+            ? snapshot.unassigned.filter { filter.isEmpty || $0.name.localizedCaseInsensitiveContains(filter) }
+            : []
+        let lastGroupID = groups.last?.id
+        let hasUnassigned = !unassigned.isEmpty
 
-    var body: some View {
-        VStack(spacing: 10) {
+        return VStack(spacing: 10) {
             HStack(spacing: 8) {
                 TextField("Filter apps or keys", text: $query)
                     .textFieldStyle(.roundedBorder).accessibilityIdentifier("apps-filter")
@@ -276,7 +275,7 @@ struct AppsSettingsView: View {
             }
             .controlSize(.small)
             ScrollView {
-                if groups.isEmpty && unassigned.isEmpty {
+                if groups.isEmpty && !hasUnassigned {
                     Text(filter.isEmpty ? "No apps yet. Add a pin or refresh." : "No apps match your search.")
                         .font(.system(size: 12)).foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, minHeight: 60)
@@ -293,9 +292,9 @@ struct AppsSettingsView: View {
                                     }
                                 }
                                 .padding(.vertical, 4)
-                                if group.id != groups.last?.id || !unassigned.isEmpty { Divider() }
+                                if group.id != lastGroupID || hasUnassigned { Divider() }
                             }
-                            if !unassigned.isEmpty {
+                            if hasUnassigned {
                                 HStack(alignment: .top, spacing: 12) {
                                     Text("No key").font(.system(size: 10)).foregroundStyle(.secondary)
                                         .frame(width: 32).padding(.top, 9)
@@ -325,7 +324,8 @@ private struct AppSettingsRow: View {
     }
 
     var body: some View {
-        HStack(spacing: 8) {
+        let bindings = self.bindings
+        return HStack(spacing: 8) {
             Button { model.activate(app) } label: {
                 HStack(spacing: 9) {
                     AppIcon(path: app.path, size: 22)
@@ -370,17 +370,20 @@ struct AppKeysEditor: View {
     @State private var behavior = RepeatBehavior.cycle
 
     private var filteredApps: [AppCandidate] {
-        Array(model.installedApps.filter { appQuery.isEmpty || $0.name.localizedCaseInsensitiveContains(appQuery) }.prefix(100))
+        let query = appQuery
+        return Array(model.installedApps.lazy.filter { query.isEmpty || $0.name.localizedCaseInsensitiveContains(query) }.prefix(100))
     }
     private var selectedApp: AppCandidate? { app ?? model.installedApps.first { $0.id == selectedAppID } }
-    private var normalizedKey: String { ShortcutKey.normalized(key.trimmingCharacters(in: .whitespacesAndNewlines)) ?? "" }
-    private var existingPin: AppBinding? { model.preferences.bindings.first { $0.key == normalizedKey } }
-    private var bindings: [AppBinding] {
-        model.preferences.bindings.filter { $0.bundleID == selectedApp?.id }.sorted { $0.key < $1.key }
-    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        let selectedApp = self.selectedApp
+        let normalizedKey = ShortcutKey.normalized(key.trimmingCharacters(in: .whitespacesAndNewlines)) ?? ""
+        let existingPin = model.preferences.bindings.first { $0.key == normalizedKey }
+        let bindings = selectedApp.map { selected in
+            model.preferences.bindings.filter { $0.bundleID == selected.id }.sorted { $0.key < $1.key }
+        } ?? []
+
+        return VStack(alignment: .leading, spacing: 16) {
             HStack {
                 if let app {
                     AppIcon(path: app.path, size: 24)
@@ -400,10 +403,11 @@ struct AppKeysEditor: View {
                         Button("Change app") { selectedAppID = "" }
                     }
                 } else {
+                    let filteredApps = self.filteredApps
                     TextField("Find an installed app", text: $appQuery)
                         .textFieldStyle(.roundedBorder).accessibilityIdentifier("pin-app-filter")
                     ScrollView {
-                        VStack(alignment: .leading, spacing: 2) {
+                        LazyVStack(alignment: .leading, spacing: 2) {
                             if filteredApps.isEmpty {
                                 Text("No installed apps match your search.")
                                     .font(.system(size: 12)).foregroundStyle(.secondary).padding(8)
@@ -490,7 +494,7 @@ struct AppKeysEditor: View {
         .padding(20)
         .frame(width: 400)
         .onChange(of: appQuery) { _ in
-            if !filteredApps.contains(where: { $0.id == selectedAppID }) { selectedAppID = "" }
+            if !selectedAppID.isEmpty && !filteredApps.contains(where: { $0.id == selectedAppID }) { selectedAppID = "" }
         }
     }
 }
@@ -503,7 +507,8 @@ struct LauncherView: View {
     private var results: [AppCandidate] { Array(model.searchResults.prefix(100)) }
 
     var body: some View {
-        VStack(spacing: 0) {
+        let results = self.results
+        return VStack(spacing: 0) {
             HStack(spacing: 12) {
                 Image(systemName: "magnifyingglass").font(.system(size: 21)).foregroundStyle(.teal)
                 LauncherSearchField(text: $model.searchQuery, onMove: moveSelection, onSubmit: activateSelection, onDismiss: onDismiss)
@@ -549,7 +554,7 @@ struct LauncherView: View {
                                     .contentShape(Rectangle())
                                 }
                                 .buttonStyle(.plain)
-                                .id(index)
+                                .id(app.id)
                                 .accessibilityLabel("\(app.name), \(app.isRunning ? "running" : "launch app")")
                                 .accessibilityAddTraits(index == model.selectedSearchIndex ? .isSelected : [])
                             }
@@ -559,7 +564,8 @@ struct LauncherView: View {
                 }
                 .frame(height: 342)
                 .onChange(of: model.selectedSearchIndex) { value in
-                    proxy.scrollTo(value, anchor: .center)
+                    guard results.indices.contains(value) else { return }
+                    proxy.scrollTo(results[value].id, anchor: .center)
                 }
             }
             Divider()
@@ -579,19 +585,26 @@ struct LauncherView: View {
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(Color.primary.opacity(0.08)))
         .tint(.teal)
-        .onAppear { model.selectedSearchIndex = 0 }
-        .onChange(of: model.searchQuery) { _ in model.selectedSearchIndex = 0 }
+        .onAppear(perform: resetSelection)
+        .onChange(of: model.searchQuery) { _ in resetSelection() }
         .onExitCommand(perform: onDismiss)
     }
 
     private func moveSelection(_ delta: Int) {
-        guard !results.isEmpty else { model.selectedSearchIndex = 0; return }
-        model.selectedSearchIndex = min(max(model.selectedSearchIndex + delta, 0), results.count - 1)
+        let results = self.results
+        guard !results.isEmpty else { resetSelection(); return }
+        let index = min(max(model.selectedSearchIndex + delta, 0), results.count - 1)
+        if index != model.selectedSearchIndex { model.selectedSearchIndex = index }
     }
 
     private func activateSelection() {
+        let results = self.results
         guard results.indices.contains(model.selectedSearchIndex) else { return }
         activateResult(results[model.selectedSearchIndex])
+    }
+
+    private func resetSelection() {
+        if model.selectedSearchIndex != 0 { model.selectedSearchIndex = 0 }
     }
 
     private func activateResult(_ app: AppCandidate) {
@@ -634,7 +647,7 @@ private struct LauncherSearchField: NSViewRepresentable {
             super.viewDidMoveToWindow()
             guard let window else { return }
             DispatchQueue.main.async { [weak self, weak window] in
-                guard let self, let window else { return }
+                guard let self, let window, self.window === window else { return }
                 window.makeFirstResponder(self)
             }
         }

@@ -19,7 +19,8 @@ final class KeyboardMonitor {
 
     func start() -> Bool {
         if let tap {
-            if !CGEvent.tapIsEnabled(tap: tap) { CGEvent.tapEnable(tap: tap, enable: true) }
+            if CGEvent.tapIsEnabled(tap: tap) { return true }
+            CGEvent.tapEnable(tap: tap, enable: true)
             return CGEvent.tapIsEnabled(tap: tap)
         }
         let mask = [CGEventType.keyDown, .keyUp, .flagsChanged].reduce(CGEventMask(0)) { $0 | (1 << $1.rawValue) }

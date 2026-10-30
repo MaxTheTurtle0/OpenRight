@@ -52,4 +52,12 @@ final class SearchMatcherTests: XCTestCase {
         let apps = [app("Mail"), app("Safari")]
         XCTAssertEqual(SearchMatcher.search("", in: apps, recentIDs: ["Safari", "Mail", "Safari"]).map(\.name), ["Safari", "Mail"])
     }
+
+    func testFoldedNameTiesUseRecencyThenIdentifier() {
+        let accented = app("Éditeur", running: false, id: "z")
+        let ascii = app("Editeur", running: false, id: "a")
+        XCTAssertEqual(SearchMatcher.search("ED", in: [accented, ascii]), [ascii, accented])
+        XCTAssertEqual(SearchMatcher.search("ED", in: [ascii, accented], recentIDs: [accented.id, ascii.id]), [accented, ascii])
+        XCTAssertEqual(SearchMatcher.search("", in: [accented, ascii]), [ascii, accented])
+    }
 }

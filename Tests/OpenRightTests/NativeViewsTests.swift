@@ -28,6 +28,7 @@ final class NativeViewsTests: XCTestCase {
         try render(SettingsView(model: model), size: NSSize(width: 660, height: 440), to: folder.appendingPathComponent("settings-minimum.png"))
         try render(AppsSettingsView(model: model).padding(28).tint(.teal), size: NSSize(width: 600, height: 620), to: folder.appendingPathComponent("apps.png"))
         try render(AppKeysEditor(model: model, app: model.runningApps[0]).tint(.teal), size: NSSize(width: 400, height: 340), to: folder.appendingPathComponent("app-keys.png"))
+        try render(AppKeysEditor(model: model).tint(.teal), size: NSSize(width: 400, height: 420), to: folder.appendingPathComponent("app-chooser.png"))
         try render(LauncherView(model: model, onDismiss: {}), size: NSSize(width: 590, height: 490), to: folder.appendingPathComponent("launcher.png"))
     }
 

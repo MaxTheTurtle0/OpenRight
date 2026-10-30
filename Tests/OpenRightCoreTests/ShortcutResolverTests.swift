@@ -133,4 +133,16 @@ final class ShortcutResolverTests: XCTestCase {
         current.isRunning = true
         XCTAssertEqual(ShortcutResolver.targets(for: "s", candidates: [current, safari], recentIDs: [], preferences: preferences), [current, safari])
     }
+
+    func testPublicResolverEntryPointsStillSanitizeDirtyInputs() {
+        let oldPin = AppBinding(key: "S", bundleID: safari.id, name: safari.name, path: safari.path)
+        let replacement = AppBinding(key: "ś", bundleID: mail.id, name: mail.name, path: mail.path, behavior: .hide)
+        let invalid = AppBinding(key: "too long", bundleID: slack.id, name: slack.name, path: slack.path)
+        let preferences = Preferences(disabledKeys: "X!x", bindings: [oldPin, invalid, replacement])
+        let apps = [mail, safari, slack]
+        XCTAssertEqual(ShortcutResolver.targets(for: "Ｓ", candidates: apps, recentIDs: [], preferences: preferences), [mail])
+        XCTAssertEqual(ShortcutResolver.action(for: "Ś", candidates: apps, frontmostID: mail.id, recentIDs: [], preferences: preferences), .hide(mail))
+        XCTAssertTrue(ShortcutResolver.targets(for: "X", candidates: apps, recentIDs: [], preferences: preferences).isEmpty)
+        XCTAssertEqual(ShortcutResolver.action(for: "X", candidates: apps, frontmostID: nil, recentIDs: [], preferences: preferences), .none)
+    }
 }

@@ -1,0 +1,714 @@
+{
+  "baselineCommit": "577ea053881b52e3d9d89437202070428b908428",
+  "hardware": "Apple M3",
+  "os": "macOS 27.0.1",
+  "swift": "6.4",
+  "flags": "-O -whole-module-optimization -swift-version 5 -target arm64-apple-macosx13.0",
+  "method": "Median of seven per-operation batch means; computation costs, not end-to-end input latency.",
+  "coreConfirmation": {
+    "runOrder": "optimized then baseline for each case in a fresh process",
+    "results": [
+      {
+        "benchmark": "normalize-unicode",
+        "baselineNsPerOperation": 549.3042,
+        "optimizedNsPerOperation": 558.9375,
+        "speedup": 0.9827649781952366,
+        "checksum": 56007
+      },
+      {
+        "benchmark": "normalize-ascii",
+        "baselineNsPerOperation": 409.83668,
+        "optimizedNsPerOperation": 5.93334,
+        "speedup": 69.0735201421122,
+        "checksum": 350008
+      },
+      {
+        "benchmark": "initial-ascii-names",
+        "baselineNsPerOperation": 912.3875,
+        "optimizedNsPerOperation": 491.20835,
+        "speedup": 1.857434833915181,
+        "checksum": 140008
+      },
+      {
+        "benchmark": "resolve-11-apps-7-pins",
+        "baselineNsPerOperation": 21299.3,
+        "optimizedNsPerOperation": 8842.325,
+        "speedup": 2.4087895434741426,
+        "checksum": 885725
+      },
+      {
+        "benchmark": "search-500-empty",
+        "baselineNsPerOperation": 10947342.5,
+        "optimizedNsPerOperation": 475850.82,
+        "speedup": 23.005828801555914,
+        "checksum": -7170346462921709392
+      }
+    ]
+  },
+  "appConfirmation": {
+    "baseline": [
+      {
+        "benchmark": "apps-parent-11-apps-7-pins-empty",
+        "fixtureChecksum": 11427,
+        "fullProjectionsPerBody": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "iterationsPerSample": 20,
+        "medianNsPerOperation": 551045.85,
+        "samplesNsPerOperation": [
+          551045.85,
+          560120.8,
+          559264.55,
+          548677.05,
+          552191.65,
+          547400,
+          550900
+        ],
+        "scope": "synthetic parent body construction; excludes child layout"
+      },
+      {
+        "benchmark": "apps-parent-11-apps-7-pins-key",
+        "fixtureChecksum": 11427,
+        "fullProjectionsPerBody": [
+          21,
+          21,
+          21,
+          21,
+          21,
+          21,
+          21
+        ],
+        "iterationsPerSample": 20,
+        "medianNsPerOperation": 3622327.05,
+        "samplesNsPerOperation": [
+          3766395.8,
+          3631712.5,
+          3633933.35,
+          3622327.05,
+          3614443.75,
+          3610966.65,
+          3608720.8
+        ],
+        "scope": "synthetic parent body construction; excludes child layout"
+      },
+      {
+        "benchmark": "apps-parent-100-apps-36-pins-empty",
+        "fixtureChecksum": 69093,
+        "fullProjectionsPerBody": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "iterationsPerSample": 3,
+        "medianNsPerOperation": 15041652.666666666,
+        "samplesNsPerOperation": [
+          14992847,
+          15073250,
+          14850986.333333334,
+          14979819.666666666,
+          15370805.666666666,
+          15063569.333333334,
+          15041652.666666666
+        ],
+        "scope": "synthetic parent body construction; excludes child layout"
+      },
+      {
+        "benchmark": "apps-parent-100-apps-36-pins-key",
+        "fixtureChecksum": 69093,
+        "fullProjectionsPerBody": [
+          75,
+          75,
+          75,
+          75,
+          75,
+          75,
+          75
+        ],
+        "iterationsPerSample": 3,
+        "medianNsPerOperation": 361741375,
+        "samplesNsPerOperation": [
+          359917430.6666667,
+          362490722.3333333,
+          361156972.3333333,
+          360595541.6666667,
+          361741375,
+          361790944.3333333,
+          362642305.6666667
+        ],
+        "scope": "synthetic parent body construction; excludes child layout"
+      },
+      {
+        "benchmark": "unchanged-refresh-100-catalog",
+        "calls": 70,
+        "medianNsPerOperation": 472675,
+        "publications": {
+          "conflict": 70,
+          "installed": 70,
+          "running": 70
+        },
+        "samplesNsPerOperation": [
+          473233.4,
+          473508.4,
+          471225,
+          469629.2,
+          471395.9,
+          473045.8,
+          472675
+        ],
+        "scope": "refreshRunningApps with unchanged live workspace snapshot and synthetic installed catalog"
+      },
+      {
+        "benchmark": "unchanged-refresh-500-catalog",
+        "calls": 70,
+        "medianNsPerOperation": 1598158.3,
+        "publications": {
+          "conflict": 70,
+          "installed": 70,
+          "running": 70
+        },
+        "samplesNsPerOperation": [
+          1612287.5,
+          1611754.2,
+          1603408.3,
+          1598158.3,
+          1597800,
+          1597783.4,
+          1596541.7
+        ],
+        "scope": "refreshRunningApps with unchanged live workspace snapshot and synthetic installed catalog"
+      },
+      {
+        "benchmark": "unchanged-refresh-2000-catalog",
+        "calls": 70,
+        "medianNsPerOperation": 9997845.8,
+        "publications": {
+          "conflict": 70,
+          "installed": 70,
+          "running": 70
+        },
+        "samplesNsPerOperation": [
+          9997845.8,
+          9990883.3,
+          10132025,
+          10240220.9,
+          10004237.5,
+          9937395.8,
+          9885933.3
+        ],
+        "scope": "refreshRunningApps with unchanged live workspace snapshot and synthetic installed catalog"
+      }
+    ],
+    "optimized": [
+      {
+        "benchmark": "apps-parent-11-apps-7-pins-empty",
+        "fixtureChecksum": 11427,
+        "fullProjectionsPerBody": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "iterationsPerSample": 20,
+        "medianNsPerOperation": 118218.75,
+        "samplesNsPerOperation": [
+          119585.4,
+          116506.25,
+          118720.8,
+          114543.75,
+          117372.9,
+          153597.95,
+          118218.75
+        ],
+        "scope": "synthetic parent body construction; excludes child layout"
+      },
+      {
+        "benchmark": "apps-parent-11-apps-7-pins-key",
+        "fixtureChecksum": 11427,
+        "fullProjectionsPerBody": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "iterationsPerSample": 20,
+        "medianNsPerOperation": 119429.15,
+        "samplesNsPerOperation": [
+          136535.4,
+          120320.85,
+          120041.65,
+          119429.15,
+          114264.55,
+          107039.6,
+          108616.65
+        ],
+        "scope": "synthetic parent body construction; excludes child layout"
+      },
+      {
+        "benchmark": "apps-parent-100-apps-36-pins-empty",
+        "fixtureChecksum": 69093,
+        "fullProjectionsPerBody": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "iterationsPerSample": 3,
+        "medianNsPerOperation": 2734611,
+        "samplesNsPerOperation": [
+          2721139,
+          2757777.6666666665,
+          2753666.6666666665,
+          2733416.6666666665,
+          2626014,
+          2740472.3333333335,
+          2734611
+        ],
+        "scope": "synthetic parent body construction; excludes child layout"
+      },
+      {
+        "benchmark": "apps-parent-100-apps-36-pins-key",
+        "fixtureChecksum": 69093,
+        "fullProjectionsPerBody": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "iterationsPerSample": 3,
+        "medianNsPerOperation": 2740944.6666666665,
+        "samplesNsPerOperation": [
+          2740944.6666666665,
+          2744861.3333333335,
+          2741028,
+          2718527.6666666665,
+          2725416.6666666665,
+          2758916.6666666665,
+          2732194.6666666665
+        ],
+        "scope": "synthetic parent body construction; excludes child layout"
+      },
+      {
+        "benchmark": "unchanged-refresh-100-catalog",
+        "calls": 70,
+        "medianNsPerOperation": 152954.1,
+        "publications": {
+          "conflict": 0,
+          "installed": 0,
+          "running": 0
+        },
+        "samplesNsPerOperation": [
+          163670.8,
+          143754.2,
+          143291.7,
+          152100,
+          152954.1,
+          166858.3,
+          201562.5
+        ],
+        "scope": "refreshRunningApps with unchanged live workspace snapshot and synthetic installed catalog"
+      },
+      {
+        "benchmark": "unchanged-refresh-500-catalog",
+        "calls": 70,
+        "medianNsPerOperation": 146787.5,
+        "publications": {
+          "conflict": 0,
+          "installed": 0,
+          "running": 0
+        },
+        "samplesNsPerOperation": [
+          146787.5,
+          139179.1,
+          139145.8,
+          137570.8,
+          158450,
+          156225,
+          154608.3
+        ],
+        "scope": "refreshRunningApps with unchanged live workspace snapshot and synthetic installed catalog"
+      },
+      {
+        "benchmark": "unchanged-refresh-2000-catalog",
+        "calls": 70,
+        "medianNsPerOperation": 202462.5,
+        "publications": {
+          "conflict": 0,
+          "installed": 0,
+          "running": 0
+        },
+        "samplesNsPerOperation": [
+          193866.6,
+          201066.6,
+          205658.3,
+          198750,
+          202720.8,
+          204170.8,
+          202462.5
+        ],
+        "scope": "refreshRunningApps with unchanged live workspace snapshot and synthetic installed catalog"
+      }
+    ]
+  },
+  "initialAppRun": {
+    "baseline": [
+      {
+        "benchmark": "apps-parent-11-apps-7-pins-empty",
+        "fixtureChecksum": 11427,
+        "fullProjectionsPerBody": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "iterationsPerSample": 20,
+        "medianNsPerOperation": 557856.25,
+        "samplesNsPerOperation": [
+          556937.5,
+          556952.05,
+          558777.1,
+          559145.85,
+          546733.35,
+          557856.25,
+          570331.25
+        ],
+        "scope": "synthetic parent body construction; excludes child layout"
+      },
+      {
+        "benchmark": "apps-parent-11-apps-7-pins-key",
+        "fixtureChecksum": 11427,
+        "fullProjectionsPerBody": [
+          21,
+          21,
+          21,
+          21,
+          21,
+          21,
+          21
+        ],
+        "iterationsPerSample": 20,
+        "medianNsPerOperation": 4721318.75,
+        "samplesNsPerOperation": [
+          4721318.75,
+          10380975,
+          18804220.85,
+          6582737.5,
+          4674475,
+          4696362.5,
+          4653645.85
+        ],
+        "scope": "synthetic parent body construction; excludes child layout"
+      },
+      {
+        "benchmark": "apps-parent-100-apps-36-pins-empty",
+        "fixtureChecksum": 69093,
+        "fullProjectionsPerBody": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "iterationsPerSample": 3,
+        "medianNsPerOperation": 19975389,
+        "samplesNsPerOperation": [
+          17131944.333333332,
+          18691139,
+          19975389,
+          42774972.333333336,
+          28705597,
+          23898736.333333332,
+          18846263.666666668
+        ],
+        "scope": "synthetic parent body construction; excludes child layout"
+      },
+      {
+        "benchmark": "apps-parent-100-apps-36-pins-key",
+        "fixtureChecksum": 69093,
+        "fullProjectionsPerBody": [
+          75,
+          75,
+          75,
+          75,
+          75,
+          75,
+          75
+        ],
+        "iterationsPerSample": 3,
+        "medianNsPerOperation": 361092653,
+        "samplesNsPerOperation": [
+          377075389,
+          363533152.6666667,
+          366656944.3333333,
+          358633000,
+          357385722.3333333,
+          361092653,
+          359607375
+        ],
+        "scope": "synthetic parent body construction; excludes child layout"
+      },
+      {
+        "benchmark": "unchanged-refresh-100-catalog",
+        "calls": 70,
+        "medianNsPerOperation": 454687.5,
+        "publications": {
+          "conflict": 70,
+          "installed": 70,
+          "running": 70
+        },
+        "samplesNsPerOperation": [
+          454687.5,
+          458654.1,
+          457866.6,
+          454933.3,
+          449775,
+          447950,
+          451579.2
+        ],
+        "scope": "refreshRunningApps with unchanged live workspace snapshot and synthetic installed catalog"
+      },
+      {
+        "benchmark": "unchanged-refresh-500-catalog",
+        "calls": 70,
+        "medianNsPerOperation": 1579845.8,
+        "publications": {
+          "conflict": 70,
+          "installed": 70,
+          "running": 70
+        },
+        "samplesNsPerOperation": [
+          1588912.5,
+          1579845.8,
+          1572058.3,
+          1580008.3,
+          1601325,
+          1577125,
+          1573733.4
+        ],
+        "scope": "refreshRunningApps with unchanged live workspace snapshot and synthetic installed catalog"
+      },
+      {
+        "benchmark": "unchanged-refresh-2000-catalog",
+        "calls": 70,
+        "medianNsPerOperation": 10309520.9,
+        "publications": {
+          "conflict": 70,
+          "installed": 70,
+          "running": 70
+        },
+        "samplesNsPerOperation": [
+          10309520.9,
+          9969466.7,
+          9884812.5,
+          13413866.7,
+          10414337.5,
+          10453658.3,
+          10045020.8
+        ],
+        "scope": "refreshRunningApps with unchanged live workspace snapshot and synthetic installed catalog"
+      }
+    ],
+    "optimized": [
+      {
+        "benchmark": "apps-parent-11-apps-7-pins-empty",
+        "fixtureChecksum": 11427,
+        "fullProjectionsPerBody": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "iterationsPerSample": 20,
+        "medianNsPerOperation": 113912.5,
+        "samplesNsPerOperation": [
+          117708.3,
+          115266.65,
+          114602.1,
+          113812.5,
+          113483.35,
+          113912.5,
+          112685.4
+        ],
+        "scope": "synthetic parent body construction; excludes child layout"
+      },
+      {
+        "benchmark": "apps-parent-11-apps-7-pins-key",
+        "fixtureChecksum": 11427,
+        "fullProjectionsPerBody": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "iterationsPerSample": 20,
+        "medianNsPerOperation": 112952.1,
+        "samplesNsPerOperation": [
+          113675,
+          114339.6,
+          112633.35,
+          113287.5,
+          112214.55,
+          112081.25,
+          112952.1
+        ],
+        "scope": "synthetic parent body construction; excludes child layout"
+      },
+      {
+        "benchmark": "apps-parent-100-apps-36-pins-empty",
+        "fixtureChecksum": 69093,
+        "fullProjectionsPerBody": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "iterationsPerSample": 3,
+        "medianNsPerOperation": 2838903,
+        "samplesNsPerOperation": [
+          2746889,
+          2798375,
+          2929500,
+          2901805.6666666665,
+          2862333.3333333335,
+          2838903,
+          2769430.6666666665
+        ],
+        "scope": "synthetic parent body construction; excludes child layout"
+      },
+      {
+        "benchmark": "apps-parent-100-apps-36-pins-key",
+        "fixtureChecksum": 69093,
+        "fullProjectionsPerBody": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "iterationsPerSample": 3,
+        "medianNsPerOperation": 2736652.6666666665,
+        "samplesNsPerOperation": [
+          2717486,
+          2832208.3333333335,
+          2736652.6666666665,
+          2731347,
+          2729014,
+          2818389,
+          2745722
+        ],
+        "scope": "synthetic parent body construction; excludes child layout"
+      },
+      {
+        "benchmark": "unchanged-refresh-100-catalog",
+        "calls": 70,
+        "medianNsPerOperation": 211554.2,
+        "publications": {
+          "conflict": 0,
+          "installed": 0,
+          "running": 0
+        },
+        "samplesNsPerOperation": [
+          151341.7,
+          156816.7,
+          152091.7,
+          221316.7,
+          212408.3,
+          211554.2,
+          212125
+        ],
+        "scope": "refreshRunningApps with unchanged live workspace snapshot and synthetic installed catalog"
+      },
+      {
+        "benchmark": "unchanged-refresh-500-catalog",
+        "calls": 70,
+        "medianNsPerOperation": 210908.3,
+        "publications": {
+          "conflict": 0,
+          "installed": 0,
+          "running": 0
+        },
+        "samplesNsPerOperation": [
+          211654.2,
+          210041.7,
+          210850,
+          210908.3,
+          210312.5,
+          222295.8,
+          211262.5
+        ],
+        "scope": "refreshRunningApps with unchanged live workspace snapshot and synthetic installed catalog"
+      },
+      {
+        "benchmark": "unchanged-refresh-2000-catalog",
+        "calls": 70,
+        "medianNsPerOperation": 209404.1,
+        "publications": {
+          "conflict": 0,
+          "installed": 0,
+          "running": 0
+        },
+        "samplesNsPerOperation": [
+          213129.2,
+          212487.5,
+          211395.8,
+          207441.7,
+          208725,
+          209404.1,
+          206358.4
+        ],
+        "scope": "refreshRunningApps with unchanged live workspace snapshot and synthetic installed catalog"
+      }
+    ]
+  },
+  "idleBaseline": {
+    "label": "baseline-settings-closed",
+    "pid": 80832,
+    "elapsed_seconds": 20.017079708,
+    "cpu_seconds": 0.04999999999999982,
+    "one_core_cpu_percent": 0.24978668581719682,
+    "rss_start_mib": 43.90625,
+    "rss_end_mib": 43.90625
+  },
+  "launcherRetention": {
+    "baselineHostRetainedAfterDismiss": true,
+    "optimizedHostRetainedAfterDismiss": false,
+    "panelReused": true
+  }
+}

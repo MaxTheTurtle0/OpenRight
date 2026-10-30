@@ -10,7 +10,7 @@ public enum ShortcutResolver {
     ) -> ShortcutAction {
         let preferences = preferences.sanitized()
         guard let key = ShortcutKey.normalized(key) else { return .none }
-        let group = targets(for: key, candidates: candidates, recentIDs: recentIDs, preferences: preferences)
+        let group = targets(forNormalizedKey: key, candidates: candidates, recentIDs: recentIDs, preferences: preferences)
         guard let first = group.first else { return .none }
         let binding = preferences.bindings.first { $0.key == key }
         if let binding, !first.isRunning { return .launch(binding) }
@@ -31,7 +31,18 @@ public enum ShortcutResolver {
         preferences: Preferences
     ) -> [AppCandidate] {
         let preferences = preferences.sanitized()
-        guard let key = ShortcutKey.normalized(key), !preferences.disabledKeys.contains(key) else { return [] }
+        guard let key = ShortcutKey.normalized(key) else { return [] }
+        return targets(forNormalizedKey: key, candidates: candidates, recentIDs: recentIDs, preferences: preferences)
+    }
+
+    // Both public entry points validate their inputs before using this helper.
+    private static func targets(
+        forNormalizedKey key: String,
+        candidates: [AppCandidate],
+        recentIDs: [String],
+        preferences: Preferences
+    ) -> [AppCandidate] {
+        guard !preferences.disabledKeys.contains(key) else { return [] }
         let running = uniqueCandidates(candidates.filter(\.isRunning))
         if let binding = preferences.bindings.first(where: { $0.key == key }) {
             guard let pinned = running.first(where: { $0.id == binding.bundleID }) else {
