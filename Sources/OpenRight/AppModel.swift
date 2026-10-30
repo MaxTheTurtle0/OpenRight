@@ -64,6 +64,15 @@ final class AppModel: ObservableObject {
         SearchMatcher.search(searchQuery, in: installedApps, recentIDs: recentIDs)
     }
 
+    var shortcutApps: [AppCandidate] {
+        var apps = Dictionary(runningApps.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        for binding in preferences.bindings where apps[binding.bundleID] == nil {
+            apps[binding.bundleID] = installedApps.first { $0.id == binding.bundleID }
+                ?? AppCandidate(id: binding.bundleID, name: binding.name, path: binding.path, isRunning: false)
+        }
+        return apps.values.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+    }
+
     var shortcutsAllowed: Bool {
         !isPaused && !(conflictingAppRunning && preferences.trigger == .rightCommand)
     }
@@ -162,7 +171,7 @@ final class AppModel: ObservableObject {
         let running = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first(where: { !$0.isTerminated })
         let url = running?.bundleURL ?? NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) ?? URL(fileURLWithPath: path)
         guard FileManager.default.fileExists(atPath: url.path), Bundle(url: url)?.bundleIdentifier == bundleID else {
-            statusMessage = "\(name) is no longer at its saved location. Assign it again in Pins."
+            statusMessage = "\(name) is no longer at its saved location. Assign it again in Apps."
             return
         }
         let config = NSWorkspace.OpenConfiguration()

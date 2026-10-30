@@ -16,8 +16,7 @@ struct SettingsView: View {
                     header
                     switch section {
                     case .general: general
-                    case .bindings: BindingsEditor(model: model)
-                    case .apps: runningApps
+                    case .apps: AppsSettingsView(model: model)
                     case .about: about
                     }
                 }
@@ -184,43 +183,6 @@ struct SettingsView: View {
         }
     }
 
-    private var runningApps: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("\(model.runningApps.count) running apps").font(.system(size: 12)).foregroundStyle(.secondary)
-                Spacer()
-                Button("Refresh", action: model.refreshApplications)
-                    .accessibilityIdentifier("refresh-apps")
-            }
-            SettingsCard {
-                if model.runningApps.isEmpty {
-                    Text("No running apps found. Try Refresh.").foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, minHeight: 80)
-                } else {
-                    VStack(spacing: 0) {
-                        ForEach(Array(model.runningApps.enumerated()), id: \.element.id) { index, app in
-                            HStack(spacing: 10) {
-                                AppIcon(path: app.path, size: 28)
-                                VStack(alignment: .leading, spacing: 3) {
-                                    Text(app.name).font(.system(size: 13, weight: .medium))
-                                    if app.isHidden { Text("Hidden").font(.system(size: 10)).foregroundStyle(.secondary) }
-                                }
-                                Spacer()
-                                KeyCap(key: firstKey(app.name).uppercased())
-                                Button("Open") { model.activate(app) }.buttonStyle(.borderless)
-                            }
-                            .padding(.vertical, 10)
-                            if index < model.runningApps.count - 1 { Divider() }
-                        }
-                    }
-                }
-            }
-            Text("Apps with the same first letter share a key. With cycling enabled, press it again to move between them. Pinned keys take priority.")
-                .font(.system(size: 12)).foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
     private var about: some View {
         VStack(alignment: .leading, spacing: 18) {
             SettingsCard {
@@ -332,12 +294,11 @@ private var appVersionDescription: String {
 }
 
 private enum SettingsSection: String, CaseIterable, Identifiable {
-    case general = "General", bindings = "Pinned keys", apps = "Running apps", about = "About"
+    case general = "General", apps = "Apps", about = "About"
     var id: String { rawValue.lowercased().replacingOccurrences(of: " ", with: "-") }
     var symbol: String {
         switch self {
         case .general: return "slider.horizontal.3"
-        case .bindings: return "pin"
         case .apps: return "square.grid.2x2"
         case .about: return "info.circle"
         }
@@ -345,16 +306,115 @@ private enum SettingsSection: String, CaseIterable, Identifiable {
     var subtitle: String {
         switch self {
         case .general: return "Choose your shortcut and make it yours."
-        case .bindings: return "Give favorite apps a permanent key, even when they aren't running."
-        case .apps: return "The apps available through first-letter switching."
+        case .apps: return "Open apps and manage their keys in one place."
         case .about: return "A small app with a simple job."
         }
     }
 }
 
 @MainActor
-private struct BindingsEditor: View {
+struct AppsSettingsView: View {
     @ObservedObject var model: AppModel
+    @State private var query = ""
+    @State private var addingPin = false
+
+    private var apps: [AppCandidate] {
+        model.shortcutApps.filter { query.isEmpty || $0.name.localizedCaseInsensitiveContains(query) }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 10) {
+                TextField("Filter apps", text: $query)
+                    .textFieldStyle(.roundedBorder)
+                    .accessibilityIdentifier("apps-filter")
+                Button("Add pin…") { addingPin = true }
+                    .accessibilityIdentifier("add-app-pin")
+                    .popover(isPresented: $addingPin) { AppKeysEditor(model: model) }
+            }
+            HStack {
+                Text("\(model.runningApps.count) running · \(model.preferences.bindings.count) pinned \(model.preferences.bindings.count == 1 ? "key" : "keys")")
+                    .font(.system(size: 12)).foregroundStyle(.secondary)
+                Spacer()
+                Button("Refresh", action: model.refreshApplications)
+                    .accessibilityIdentifier("refresh-apps")
+            }
+            SettingsCard {
+                if apps.isEmpty {
+                    Text(query.isEmpty ? "No apps yet. Refresh or add a pin." : "No apps match your search.")
+                        .font(.system(size: 13)).foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, minHeight: 80)
+                } else {
+                    VStack(spacing: 0) {
+                        ForEach(Array(apps.enumerated()), id: \.element.id) { index, app in
+                            AppSettingsRow(model: model, app: app)
+                            if index < apps.count - 1 { Divider() }
+                        }
+                    }
+                }
+            }
+            Text("Click an app's keys to pin a shortcut or change its repeat behavior. Pinned apps stay here when closed. Apps without pins use their first letter while running.")
+                .font(.system(size: 12)).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
+@MainActor
+private struct AppSettingsRow: View {
+    @ObservedObject var model: AppModel
+    var app: AppCandidate
+    @State private var editingKeys = false
+
+    private var bindings: [AppBinding] {
+        model.preferences.bindings.filter { $0.bundleID == app.id }.sorted { $0.key < $1.key }
+    }
+    private var status: String {
+        let state = app.isRunning ? (app.isHidden ? "Hidden" : "Running") : "Not running"
+        return bindings.isEmpty ? state : "\(state) · Pinned"
+    }
+
+    var body: some View {
+        HStack(spacing: 10) {
+            AppIcon(path: app.path, size: 28)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(app.name).font(.system(size: 13, weight: .medium)).lineLimit(1)
+                Text(status).font(.system(size: 10)).foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 8)
+            Button { editingKeys = true } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: bindings.isEmpty ? "pin" : "pin.fill")
+                        .font(.system(size: 10)).foregroundStyle(bindings.isEmpty ? Color.secondary : Color.teal)
+                    if bindings.isEmpty {
+                        KeyCap(key: firstKey(app.name).uppercased())
+                    } else {
+                        ForEach(Array(bindings.prefix(2))) { binding in KeyCap(key: binding.key.uppercased()) }
+                        if bindings.count > 2 { Text("+\(bindings.count - 2)").font(.system(size: 11)) }
+                    }
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help("Manage keys for \(app.name)")
+            .accessibilityLabel("Manage keys for \(app.name)")
+            .accessibilityValue(bindings.isEmpty ? "Automatic key \(firstKey(app.name).uppercased())" : "Pinned keys \(bindings.map { $0.key.uppercased() }.joined(separator: ", "))")
+            .accessibilityIdentifier("app-keys-\(app.id)")
+            .popover(isPresented: $editingKeys) { AppKeysEditor(model: model, app: app) }
+            Button("Open") { model.activate(app) }
+                .buttonStyle(.borderless)
+                .accessibilityLabel("Open \(app.name)")
+                .accessibilityIdentifier("app-open-\(app.id)")
+        }
+        .padding(.vertical, 10)
+    }
+}
+
+@MainActor
+struct AppKeysEditor: View {
+    @ObservedObject var model: AppModel
+    var app: AppCandidate? = nil
+    @Environment(\.dismiss) private var dismiss
     @State private var appQuery = ""
     @State private var selectedAppID = ""
     @State private var key = ""
@@ -363,88 +423,123 @@ private struct BindingsEditor: View {
     private var filteredApps: [AppCandidate] {
         Array(model.installedApps.filter { appQuery.isEmpty || $0.name.localizedCaseInsensitiveContains(appQuery) }.prefix(100))
     }
-    private var selectedApp: AppCandidate? { model.installedApps.first { $0.id == selectedAppID } }
+    private var selectedApp: AppCandidate? { app ?? model.installedApps.first { $0.id == selectedAppID } }
     private var normalizedKey: String { ShortcutKey.normalized(key.trimmingCharacters(in: .whitespacesAndNewlines)) ?? "" }
-    private var validKey: Bool { !normalizedKey.isEmpty }
+    private var existingPin: AppBinding? { model.preferences.bindings.first { $0.key == normalizedKey } }
+    private var bindings: [AppBinding] {
+        model.preferences.bindings.filter { $0.bundleID == selectedApp?.id }.sorted { $0.key < $1.key }
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            SettingsCard {
-                VStack(alignment: .leading, spacing: 13) {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                if let app {
+                    AppIcon(path: app.path, size: 24)
+                    Text(app.name).font(.system(size: 14, weight: .semibold)).lineLimit(1)
+                } else {
                     Text("Add a pinned key").font(.system(size: 14, weight: .semibold))
-                    TextField("Filter installed apps", text: $appQuery)
+                }
+                Spacer()
+                Button("Done") { dismiss() }.keyboardShortcut(.cancelAction)
+            }
+            if app == nil {
+                if let selectedApp {
+                    HStack(spacing: 10) {
+                        AppIcon(path: selectedApp.path, size: 24)
+                        Text(selectedApp.name).font(.system(size: 13, weight: .medium)).lineLimit(1)
+                        Spacer()
+                        Button("Change app") { selectedAppID = "" }
+                    }
+                } else {
+                    TextField("Find an installed app", text: $appQuery)
                         .textFieldStyle(.roundedBorder).accessibilityIdentifier("pin-app-filter")
-                    Picker("App", selection: $selectedAppID) {
-                        Text("Choose an app").tag("")
-                        ForEach(filteredApps) { app in Text(app.name).tag(app.id) }
-                    }
-                    .accessibilityIdentifier("pin-app-picker")
-                    HStack(alignment: .center, spacing: 12) {
-                        TextField("Key", text: $key)
-                            .textFieldStyle(.roundedBorder).frame(width: 56)
-                            .accessibilityLabel("Pinned letter or number")
-                            .accessibilityIdentifier("pin-key")
-                        Picker("Repeat", selection: $behavior) {
-                            Text("Cycle").tag(RepeatBehavior.cycle)
-                            Text("Hide").tag(RepeatBehavior.hide)
-                        }
-                        Spacer(minLength: 0)
-                        Button(model.preferences.bindings.contains { $0.key == normalizedKey } ? "Replace pin" : "Add pin") {
-                            if let app = selectedApp, validKey {
-                                model.pin(key: normalizedKey, app: app, behavior: behavior)
-                                key = ""
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 2) {
+                            if filteredApps.isEmpty {
+                                Text("No installed apps match your search.")
+                                    .font(.system(size: 12)).foregroundStyle(.secondary).padding(8)
                             }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(!validKey || selectedApp == nil)
-                        .accessibilityIdentifier("add-pin")
-                    }
-                    Text("Use one letter or number. You can also hold the trigger, add \(pinModifier(model.preferences.trigger)), and press a key to pin the frontmost app.")
-                        .font(.system(size: 11)).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            if model.preferences.bindings.isEmpty {
-                VStack(spacing: 10) {
-                    Image(systemName: "pin.slash").font(.system(size: 26)).foregroundStyle(.secondary)
-                    Text("No pinned keys yet").font(.system(size: 14, weight: .medium))
-                    Text("First-letter switching works without any setup.")
-                        .font(.system(size: 12)).foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity).padding(.vertical, 28)
-            } else {
-                SettingsCard {
-                    VStack(spacing: 0) {
-                        ForEach(Array(model.preferences.bindings.sorted { $0.key < $1.key }.enumerated()), id: \.element.id) { index, binding in
-                            HStack(spacing: 10) {
-                                KeyCap(key: binding.key.uppercased())
-                                AppIcon(path: binding.path, size: 26)
-                                Text(binding.name).font(.system(size: 13, weight: .medium)).lineLimit(1)
-                                Spacer(minLength: 4)
-                                Picker("Repeat for \(binding.name)", selection: Binding(
-                                    get: { model.preferences.bindings.first { $0.key == binding.key }?.behavior ?? .cycle },
-                                    set: { value in
-                                        guard let index = model.preferences.bindings.firstIndex(where: { $0.key == binding.key }) else { return }
-                                        model.preferences.bindings[index].behavior = value
+                            ForEach(filteredApps) { candidate in
+                                Button { selectedAppID = candidate.id } label: {
+                                    HStack(spacing: 9) {
+                                        AppIcon(path: candidate.path, size: 22)
+                                        Text(candidate.name).font(.system(size: 13)).lineLimit(1)
+                                        Spacer()
                                     }
-                                )) {
-                                    Text("Cycle").tag(RepeatBehavior.cycle)
-                                    Text("Hide").tag(RepeatBehavior.hide)
+                                    .padding(7).contentShape(Rectangle())
                                 }
-                                .labelsHidden().frame(width: 88)
-                                Button { model.removeBinding(binding.key) } label: {
-                                    Image(systemName: "minus.circle")
-                                }
-                                .buttonStyle(.borderless)
-                                .accessibilityLabel("Remove \(binding.key.uppercased()) pin for \(binding.name)")
+                                .buttonStyle(.plain)
+                                .accessibilityLabel("Select \(candidate.name)")
+                                .accessibilityIdentifier("pin-select-\(candidate.id)")
                             }
-                            .padding(.vertical, 11)
-                            if index < model.preferences.bindings.count - 1 { Divider() }
                         }
                     }
+                    .frame(height: min(CGFloat(max(filteredApps.count, 1)) * 38, 190))
                 }
             }
+            if !bindings.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Pinned keys").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
+                    ScrollView {
+                        VStack(spacing: 0) {
+                            ForEach(bindings) { binding in
+                                HStack(spacing: 10) {
+                                    KeyCap(key: binding.key.uppercased())
+                                    Spacer()
+                                    Picker("Repeat for \(binding.key.uppercased()) in \(binding.name)", selection: Binding(
+                                        get: { model.preferences.bindings.first { $0.key == binding.key }?.behavior ?? .cycle },
+                                        set: { value in
+                                            guard let index = model.preferences.bindings.firstIndex(where: { $0.key == binding.key }) else { return }
+                                            model.preferences.bindings[index].behavior = value
+                                        }
+                                    )) {
+                                        Text("Cycle").tag(RepeatBehavior.cycle)
+                                        Text("Hide").tag(RepeatBehavior.hide)
+                                    }
+                                    .labelsHidden().frame(width: 100)
+                                    Button { model.removeBinding(binding.key) } label: { Image(systemName: "minus.circle") }
+                                        .buttonStyle(.borderless)
+                                        .accessibilityLabel("Remove \(binding.key.uppercased()) pin for \(binding.name)")
+                                }
+                                .frame(height: 38)
+                            }
+                        }
+                    }
+                    .frame(height: min(CGFloat(bindings.count) * 38, 190))
+                }
+                Divider()
+            }
+            HStack(spacing: 10) {
+                TextField("Key", text: $key)
+                    .textFieldStyle(.roundedBorder).frame(width: 50)
+                    .accessibilityLabel("Pinned letter or number")
+                    .accessibilityIdentifier("pin-key")
+                Picker("Repeat", selection: $behavior) {
+                    Text("Cycle").tag(RepeatBehavior.cycle)
+                    Text("Hide").tag(RepeatBehavior.hide)
+                }
+                .frame(width: 150)
+                Spacer(minLength: 0)
+                Button(existingPin == nil ? "Add pin" : "Replace pin") {
+                    guard let app = selectedApp, !normalizedKey.isEmpty else { return }
+                    model.pin(key: normalizedKey, app: app, behavior: behavior)
+                    key = ""
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(normalizedKey.isEmpty || selectedApp == nil)
+                .accessibilityIdentifier("add-pin")
+            }
+            if let existingPin, existingPin.bundleID != selectedApp?.id {
+                Text("\(normalizedKey.uppercased()) is pinned to \(existingPin.name). Replacing it moves that key to the selected app.")
+                    .font(.system(size: 11)).foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Text("Use one letter or number. A pinned key works even when the app is closed.")
+                .font(.system(size: 11)).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
+        .padding(20)
+        .frame(width: 400)
         .onChange(of: appQuery) { _ in
             if !filteredApps.contains(where: { $0.id == selectedAppID }) { selectedAppID = "" }
         }

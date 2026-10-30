@@ -33,6 +33,10 @@ Automated core tests cannot verify real keyboard events, Accessibility permissio
 
 ## Search and app list
 
+- [ ] Settings has a single Apps tab. Running apps and closed pinned apps appear once each.
+- [ ] Filter the Apps list. Opening an app and managing its keys remain available on each matching row.
+- [ ] Click an app's keys. Add and remove pins and change their repeat behavior. Changes survive reopening Settings.
+- [ ] Use Add pin to choose a closed installed app. The app appears in the same list with its assigned key.
 - [ ] Press the trigger + Space. Search opens and the field receives keyboard focus.
 - [ ] Search by a prefix and by a subsequence. Running and installed apps appear without duplicate bundle IDs.
 - [ ] Arrow keys change the selected result. Return focuses or launches that result.
