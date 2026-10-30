@@ -4,6 +4,12 @@ import ServiceManagement
 import SwiftUI
 import OpenRightCore
 
+struct AppShortcutGroup: Identifiable {
+    let key: String
+    var apps: [AppCandidate]
+    var id: String { key }
+}
+
 @MainActor
 final class AppModel: ObservableObject {
     let updates = UpdateService()
@@ -15,7 +21,7 @@ final class AppModel: ObservableObject {
     @Published var accessibilityGranted = false
     @Published var listenerActive = false
     @Published var conflictingAppRunning = false
-    @Published var statusMessage = "Ready to set up"
+    @Published var statusMessage = ""
     @Published var searchQuery = ""
     @Published var selectedSearchIndex = 0
     var openSettings: (() -> Void)?
@@ -73,6 +79,23 @@ final class AppModel: ObservableObject {
         return apps.values.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
 
+    var shortcutGroups: [AppShortcutGroup] {
+        let preferences = preferences.sanitized()
+        let pinnedIDs = Set(preferences.bindings.filter { !preferences.disabledKeys.contains($0.key) }.map(\.bundleID))
+        let automaticKeys = runningApps.filter { !pinnedIDs.contains($0.id) }.compactMap { ShortcutKey.initial(for: $0.name) }
+        let keys = Set(preferences.bindings.map(\.key) + automaticKeys)
+        let apps = shortcutApps
+        return keys.sorted().compactMap { key in
+            let targets = ShortcutResolver.targets(for: key, candidates: apps, recentIDs: recentIDs, preferences: preferences)
+            return targets.isEmpty ? nil : AppShortcutGroup(key: key, apps: targets)
+        }
+    }
+
+    var appsWithoutShortcut: [AppCandidate] {
+        let groupedIDs = Set(shortcutGroups.flatMap(\.apps).map(\.id))
+        return shortcutApps.filter { !groupedIDs.contains($0.id) }
+    }
+
     var shortcutsAllowed: Bool {
         !isPaused && !(conflictingAppRunning && preferences.trigger == .rightCommand)
     }
@@ -93,7 +116,7 @@ final class AppModel: ObservableObject {
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
             try encoder.encode(preferences).write(to: preferencesURL, options: .atomic)
-            statusMessage = "Preferences saved"
+            statusMessage = ""
         } catch { statusMessage = "Could not save preferences: \(error.localizedDescription)" }
         preferencesDidChange?()
     }

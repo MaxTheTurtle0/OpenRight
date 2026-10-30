@@ -33,9 +33,13 @@ Automated core tests cannot verify real keyboard events, Accessibility permissio
 
 ## Search and app list
 
-- [ ] Settings has a single Apps tab. Running apps and closed pinned apps appear once each.
+- [ ] Settings has a single Apps tab. Apps sharing a shortcut key appear together under that key, with the pinned app first.
+- [ ] Check a group containing an app with a separate pinned key. It appears in both groups when both shortcuts can reach it.
+- [ ] Disable a pinned key or use Hide on a pin. Groups follow the resolver; apps without an available displayed key remain editable under No key.
+- [ ] There are no large page titles, descriptions, sidebar taglines, or repeated Running/Pinned row labels. Closed and hidden states remain visible.
+- [ ] At the minimum Settings window size, controls fit and content scrolls. The Apps filter remains visible while the list scrolls.
 - [ ] Filter the Apps list. Opening an app and managing its keys remain available on each matching row.
-- [ ] Click an app's keys. Add and remove pins and change their repeat behavior. Changes survive reopening Settings.
+- [ ] Click an app's pin icon. Add and remove pins and change their repeat behavior. Changes survive reopening Settings.
 - [ ] Use Add pin to choose a closed installed app. The app appears in the same list with its assigned key.
 - [ ] Press the trigger + Space. Search opens and the field receives keyboard focus.
 - [ ] Search by a prefix and by a subsequence. Running and installed apps appear without duplicate bundle IDs.

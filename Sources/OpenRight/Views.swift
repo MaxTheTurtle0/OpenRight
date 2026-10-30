@@ -11,47 +11,34 @@ struct SettingsView: View {
         HStack(spacing: 0) {
             sidebar
             Divider()
-            ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
-                    header
-                    switch section {
-                    case .general: general
-                    case .apps: AppsSettingsView(model: model)
-                    case .about: about
-                    }
+            Group {
+                switch section {
+                case .general:
+                    ScrollView { general.padding(18).frame(maxWidth: .infinity, alignment: .leading) }
+                case .apps:
+                    AppsSettingsView(model: model).padding(18)
+                case .about:
+                    ScrollView { about.padding(18).frame(maxWidth: .infinity, alignment: .leading) }
                 }
-                .padding(28)
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .background(Color(NSColor.windowBackgroundColor))
         }
-        .frame(minWidth: 760, idealWidth: 800, minHeight: 570, idealHeight: 640)
+        .frame(minWidth: 660, idealWidth: 720, minHeight: 440, idealHeight: 560)
         .tint(.teal)
         .onChange(of: model.preferences) { _ in model.savePreferences() }
     }
 
     private var sidebar: some View {
-        VStack(alignment: .leading, spacing: 22) {
-            HStack(spacing: 10) {
-                Image(systemName: "command.square.fill")
-                    .font(.system(size: 30))
-                    .foregroundStyle(.teal)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("OpenRight").font(.headline)
-                    Text("Your apps, one key away")
-                        .font(.system(size: 10)).foregroundStyle(.secondary)
-                }
-            }
-            .padding(.top, 12)
+        VStack(alignment: .leading, spacing: 14) {
             VStack(spacing: 4) {
                 ForEach(SettingsSection.allCases) { item in
                     Button { section = item } label: {
                         Label(item.rawValue, systemImage: item.symbol)
                             .font(.system(size: 13, weight: section == item ? .semibold : .regular))
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 12).padding(.vertical, 10)
+                            .padding(.horizontal, 10).padding(.vertical, 8)
                             .background(section == item ? Color.teal.opacity(0.14) : Color.clear)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .clipShape(RoundedRectangle(cornerRadius: 7))
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -59,20 +46,17 @@ struct SettingsView: View {
                     .accessibilityAddTraits(section == item ? .isSelected : [])
                 }
             }
+            .padding(.top, 12)
             Spacer()
-            VStack(alignment: .leading, spacing: 7) {
-                HStack(spacing: 6) {
-                    Circle().fill(statusColor).frame(width: 7, height: 7)
-                    Text(model.isPaused ? "Shortcuts paused" : !model.shortcutsAllowed ? "Trigger unavailable" : model.listenerActive ? "Shortcuts active" : "Setup needed")
-                        .font(.system(size: 11, weight: .medium))
-                }
-                Text("Open source. On your Mac.")
-                    .font(.system(size: 10)).foregroundStyle(.secondary)
+            HStack(spacing: 6) {
+                Circle().fill(statusColor).frame(width: 6, height: 6)
+                Text(model.isPaused ? "Shortcuts paused" : !model.shortcutsAllowed ? "Trigger unavailable" : model.listenerActive ? "Shortcuts active" : "Setup needed")
+                    .font(.system(size: 10))
             }
-            .padding(.horizontal, 6).padding(.bottom, 14)
+            .padding(.horizontal, 4).padding(.bottom, 14)
         }
-        .padding(.horizontal, 14)
-        .frame(width: 190)
+        .padding(.horizontal, 10)
+        .frame(width: 148)
         .background(.thinMaterial)
     }
 
@@ -80,29 +64,22 @@ struct SettingsView: View {
         model.isPaused || !model.shortcutsAllowed ? .orange : model.listenerActive ? .teal : .secondary
     }
 
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(section.rawValue).font(.system(size: 27, weight: .bold, design: .rounded))
-            Text(section.subtitle).font(.system(size: 13)).foregroundStyle(.secondary)
-        }
-    }
-
     private var general: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            setupCard
+        VStack(alignment: .leading, spacing: 12) {
+            if !model.accessibilityGranted || !model.listenerActive || (model.conflictingAppRunning && model.preferences.trigger == .rightCommand) {
+                setupCard
+            }
             SettingsCard {
-                VStack(alignment: .leading, spacing: 18) {
-                    settingRow("Trigger", detail: "Hold this modifier and press an app's first letter.") {
+                VStack(alignment: .leading, spacing: 12) {
+                    settingRow("Trigger", detail: "Hold this modifier and press an app's key.") {
                         Picker("Trigger", selection: $model.preferences.trigger) {
-                            ForEach(Trigger.allCases, id: \.self) { trigger in
-                                Text(triggerTitle(trigger)).tag(trigger)
-                            }
+                            ForEach(Trigger.allCases, id: \.self) { trigger in Text(triggerTitle(trigger)).tag(trigger) }
                         }
                         .labelsHidden().frame(width: 172)
                         .accessibilityIdentifier("trigger-picker")
                     }
                     Divider()
-                    settingRow("Press the same key again", detail: "Choose what happens when the matching app is already active.") {
+                    settingRow("Repeat key", detail: "Choose what happens when the matching app is already active.") {
                         Picker("Repeat behavior", selection: $model.preferences.repeatBehavior) {
                             Text("Cycle matching apps").tag(RepeatBehavior.cycle)
                             Text("Hide the active app").tag(RepeatBehavior.hide)
@@ -116,132 +93,94 @@ struct SettingsView: View {
                             .textFieldStyle(.roundedBorder).frame(width: 172)
                             .accessibilityIdentifier("disabled-keys")
                     }
+                    if model.accessibilityGranted {
+                        Divider()
+                        Toggle("Pause shortcuts", isOn: $model.isPaused)
+                            .toggleStyle(.switch).accessibilityIdentifier("pause-toggle")
+                    }
                 }
             }
             SettingsCard {
-                Toggle(isOn: Binding(get: { model.preferences.launchAtLogin }, set: { model.setLaunchAtLogin($0) })) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("Start at login").font(.system(size: 13, weight: .medium))
-                        Text("Keep OpenRight available after you restart your Mac.")
-                            .font(.system(size: 11)).foregroundStyle(.secondary)
-                    }
-                }
-                .toggleStyle(.switch)
-                .accessibilityIdentifier("login-toggle")
+                Toggle("Start at login", isOn: Binding(get: { model.preferences.launchAtLogin }, set: { model.setLaunchAtLogin($0) }))
+                    .toggleStyle(.switch).accessibilityIdentifier("login-toggle")
             }
             UpdatesSettingsView(service: model.updates)
-            HStack(spacing: 9) {
-                Image(systemName: "space").font(.system(size: 16)).foregroundStyle(.teal)
-                Text("\(triggerTitle(model.preferences.trigger)) + Space opens app search.")
-                    .font(.system(size: 12)).foregroundStyle(.secondary)
+            HStack {
+                Button("Search apps…") { model.showLauncher?() }
                 Spacer()
-                Button("Try search") { model.showLauncher?() }
+                Text("\(triggerTitle(model.preferences.trigger)) + Space")
+                    .font(.system(size: 11)).foregroundStyle(.secondary)
+            }
+            if !model.statusMessage.isEmpty {
+                Text(model.statusMessage).font(.system(size: 12)).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
+        .font(.system(size: 13))
     }
 
     private var setupCard: some View {
         SettingsCard {
-            VStack(alignment: .leading, spacing: 13) {
-                HStack(alignment: .top, spacing: 11) {
-                    Image(systemName: model.accessibilityGranted ? "checkmark.shield.fill" : "hand.raised.fill")
-                        .font(.system(size: 24)).foregroundStyle(model.accessibilityGranted ? Color.teal : Color.orange)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(model.accessibilityGranted ? "Accessibility is enabled" : "Allow global shortcuts")
-                            .font(.system(size: 14, weight: .semibold))
-                        Text(model.accessibilityGranted ? model.statusMessage : "macOS needs Accessibility access to recognize and handle shortcuts in other apps.")
-                            .font(.system(size: 12)).foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    Spacer(minLength: 0)
-                }
+            VStack(alignment: .leading, spacing: 12) {
                 if !model.accessibilityGranted {
+                    Text("Enable Accessibility to use global shortcuts.")
+                        .font(.system(size: 12)).foregroundStyle(.secondary)
                     HStack {
                         Button("Enable Accessibility", action: model.requestAccessibility)
-                            .buttonStyle(.borderedProminent)
-                            .accessibilityIdentifier("enable-accessibility")
+                            .buttonStyle(.borderedProminent).accessibilityIdentifier("enable-accessibility")
                         Button("Open System Settings", action: model.openAccessibilitySettings)
                     }
                 }
                 if model.conflictingAppRunning && model.preferences.trigger == .rightCommand {
-                    Label("rcmd is running. OpenRight's Right Command trigger is suspended. Quit rcmd or choose another trigger here.", systemImage: "exclamationmark.triangle")
+                    Label("rcmd is running. Quit it or choose another trigger to use OpenRight.", systemImage: "exclamationmark.triangle")
                         .font(.system(size: 12)).foregroundStyle(.orange)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("conflicting-app-warning")
                 }
-                if model.accessibilityGranted {
-                    if !model.listenerActive {
-                        Label("The keyboard listener could not start. Check Input Monitoring in System Settings, then relaunch OpenRight.", systemImage: "exclamationmark.triangle")
-                            .font(.system(size: 12)).foregroundStyle(.orange)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    Toggle("Pause shortcuts", isOn: $model.isPaused)
-                        .toggleStyle(.switch)
-                        .accessibilityIdentifier("pause-toggle")
+                if model.accessibilityGranted && !model.listenerActive {
+                    Label("The keyboard listener could not start. Check Input Monitoring in System Settings, then relaunch OpenRight.", systemImage: "exclamationmark.triangle")
+                        .font(.system(size: 12)).foregroundStyle(.orange)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
     }
 
     private var about: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 12) {
             SettingsCard {
-                VStack(alignment: .leading, spacing: 16) {
-                    HStack(spacing: 14) {
-                        Image(systemName: "command.square.fill").font(.system(size: 54)).foregroundStyle(.teal)
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text("OpenRight").font(.system(size: 23, weight: .bold, design: .rounded))
-                            Text("An open-source app switcher for macOS.")
-                                .font(.system(size: 13)).foregroundStyle(.secondary)
-                            Text(appVersionDescription)
-                                .font(.system(size: 11)).foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 10) {
+                        Image(systemName: "command.square.fill").font(.system(size: 32)).foregroundStyle(.teal)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("OpenRight").font(.headline)
+                            Text(appVersionDescription).font(.system(size: 11)).foregroundStyle(.secondary)
                         }
                     }
-                    Divider()
-                    shortcutLine("Letter", "Focus a running app by its first letter.")
-                    shortcutLine("Space", "Search installed apps and launch a result.")
-                    Text("Hold your selected trigger for these shortcuts. Add \(pinModifier(model.preferences.trigger)) while pressing a letter to pin the frontmost app to that key.")
+                    Text("Independent implementation. MIT licensed.")
                         .font(.system(size: 12)).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                    HStack(spacing: 16) {
+                        Link("Source code", destination: URL(string: "https://github.com/MaxTheTurtle0/OpenRight")!)
+                        Link("Release notes", destination: URL(string: "https://github.com/MaxTheTurtle0/OpenRight/releases")!)
+                    }
+                    .font(.system(size: 12))
                 }
             }
             SettingsCard {
-                VStack(alignment: .leading, spacing: 8) {
-                    Label("Your activity stays on this Mac", systemImage: "lock.shield")
-                        .font(.system(size: 13, weight: .semibold))
-                    Text("OpenRight does not record typed text or collect analytics. Settings and pinned keys stay on this Mac. Update checks and downloads contact GitHub.")
-                        .font(.system(size: 12)).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+                Text("OpenRight does not record typed text or collect analytics. Settings and pins stay on this Mac. Update checks and downloads contact GitHub.")
+                    .font(.system(size: 12)).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            Text("Independent implementation. MIT licensed.")
-                .font(.system(size: 12)).foregroundStyle(.secondary)
-            HStack(spacing: 16) {
-                Link("Source code", destination: URL(string: "https://github.com/MaxTheTurtle0/OpenRight")!)
-                Link("Release notes", destination: URL(string: "https://github.com/MaxTheTurtle0/OpenRight/releases")!)
-            }
-            .font(.system(size: 12))
             Button("Restore default settings", action: model.restoreDefaults)
                 .accessibilityIdentifier("restore-defaults")
         }
     }
 
     private func settingRow<Content: View>(_ title: String, detail: String, @ViewBuilder control: () -> Content) -> some View {
-        HStack(alignment: .center, spacing: 18) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title).font(.system(size: 13, weight: .medium))
-                Text(detail).font(.system(size: 11)).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+        HStack(spacing: 12) {
+            Text(title).font(.system(size: 13, weight: .medium)).help(detail)
             Spacer(minLength: 6)
             control()
-        }
-    }
-
-    private func shortcutLine(_ key: String, _ detail: String) -> some View {
-        HStack(spacing: 12) {
-            KeyCap(key: key).frame(width: 58)
-            Text(detail).font(.system(size: 12))
         }
     }
 }
@@ -252,34 +191,27 @@ private struct UpdatesSettingsView: View {
 
     var body: some View {
         SettingsCard {
-            VStack(alignment: .leading, spacing: 13) {
+            VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Label("Updates", systemImage: "arrow.down.circle")
-                        .font(.system(size: 13, weight: .semibold))
+                    Text("Updates").font(.system(size: 13, weight: .medium))
                     Spacer()
                     Text(appVersionDescription).font(.system(size: 11)).foregroundStyle(.secondary)
                 }
-                Toggle(isOn: Binding(
+                Toggle("Automatically check for updates", isOn: Binding(
                     get: { service.automaticallyChecksForUpdates },
                     set: { service.setAutomaticallyChecksForUpdates($0) }
-                )) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("Automatically check for updates").font(.system(size: 13, weight: .medium))
-                        Text("Find signed releases on GitHub. You choose when to install.")
-                            .font(.system(size: 11)).foregroundStyle(.secondary)
+                ))
+                .font(.system(size: 13)).toggleStyle(.switch)
+                .disabled(!service.isConfigured).accessibilityIdentifier("automatic-update-checks")
+                HStack {
+                    Button("Check for Updates…", action: service.checkForUpdates)
+                        .disabled(!service.canCheckForUpdates).accessibilityIdentifier("check-for-updates")
+                    if service.isConfigured && !service.canCheckForUpdates {
+                        Text("Checking…").font(.system(size: 11)).foregroundStyle(.secondary)
                     }
                 }
-                .toggleStyle(.switch)
-                .disabled(!service.isConfigured)
-                .accessibilityIdentifier("automatic-update-checks")
-                HStack(spacing: 14) {
-                    Text(service.statusDescription)
-                        .font(.system(size: 11)).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Spacer(minLength: 0)
-                    Button("Check for Updates…", action: service.checkForUpdates)
-                        .disabled(!service.canCheckForUpdates)
-                        .accessibilityIdentifier("check-for-updates")
+                if !service.isConfigured {
+                    Text(service.statusDescription).font(.system(size: 11)).foregroundStyle(.secondary)
                 }
             }
         }
@@ -303,13 +235,7 @@ private enum SettingsSection: String, CaseIterable, Identifiable {
         case .about: return "info.circle"
         }
     }
-    var subtitle: String {
-        switch self {
-        case .general: return "Choose your shortcut and make it yours."
-        case .apps: return "Open apps and manage their keys in one place."
-        case .about: return "A small app with a simple job."
-        }
-    }
+
 }
 
 @MainActor
@@ -318,44 +244,72 @@ struct AppsSettingsView: View {
     @State private var query = ""
     @State private var addingPin = false
 
-    private var apps: [AppCandidate] {
-        model.shortcutApps.filter { query.isEmpty || $0.name.localizedCaseInsensitiveContains(query) }
+    private var filter: String { query.trimmingCharacters(in: .whitespacesAndNewlines) }
+    private var filteredKey: String? {
+        guard let key = ShortcutKey.normalized(filter), model.shortcutGroups.contains(where: { $0.key == key }) else { return nil }
+        return key
+    }
+    private var groups: [AppShortcutGroup] {
+        model.shortcutGroups.compactMap { group in
+            if let filteredKey { return group.key == filteredKey ? group : nil }
+            if filter.isEmpty || group.key.localizedCaseInsensitiveContains(filter) { return group }
+            let apps = group.apps.filter { $0.name.localizedCaseInsensitiveContains(filter) }
+            return apps.isEmpty ? nil : AppShortcutGroup(key: group.key, apps: apps)
+        }
+    }
+    private var unassigned: [AppCandidate] {
+        if filteredKey != nil { return [] }
+        return model.appsWithoutShortcut.filter { filter.isEmpty || $0.name.localizedCaseInsensitiveContains(filter) }
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(spacing: 10) {
-                TextField("Filter apps", text: $query)
-                    .textFieldStyle(.roundedBorder)
-                    .accessibilityIdentifier("apps-filter")
+        VStack(spacing: 10) {
+            HStack(spacing: 8) {
+                TextField("Filter apps or keys", text: $query)
+                    .textFieldStyle(.roundedBorder).accessibilityIdentifier("apps-filter")
                 Button("Add pin…") { addingPin = true }
                     .accessibilityIdentifier("add-app-pin")
                     .popover(isPresented: $addingPin) { AppKeysEditor(model: model) }
+                Button(action: model.refreshApplications) { Image(systemName: "arrow.clockwise") }
+                    .buttonStyle(.borderless).help("Refresh apps")
+                    .accessibilityLabel("Refresh apps").accessibilityIdentifier("refresh-apps")
             }
-            HStack {
-                Text("\(model.runningApps.count) running · \(model.preferences.bindings.count) pinned \(model.preferences.bindings.count == 1 ? "key" : "keys")")
-                    .font(.system(size: 12)).foregroundStyle(.secondary)
-                Spacer()
-                Button("Refresh", action: model.refreshApplications)
-                    .accessibilityIdentifier("refresh-apps")
-            }
-            SettingsCard {
-                if apps.isEmpty {
-                    Text(query.isEmpty ? "No apps yet. Refresh or add a pin." : "No apps match your search.")
-                        .font(.system(size: 13)).foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, minHeight: 80)
+            .controlSize(.small)
+            ScrollView {
+                if groups.isEmpty && unassigned.isEmpty {
+                    Text(filter.isEmpty ? "No apps yet. Add a pin or refresh." : "No apps match your search.")
+                        .font(.system(size: 12)).foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, minHeight: 60)
                 } else {
-                    VStack(spacing: 0) {
-                        ForEach(Array(apps.enumerated()), id: \.element.id) { index, app in
-                            AppSettingsRow(model: model, app: app)
-                            if index < apps.count - 1 { Divider() }
+                    SettingsCard(padding: 12) {
+                        VStack(spacing: 0) {
+                            ForEach(groups) { group in
+                                HStack(alignment: .top, spacing: 12) {
+                                    KeyCap(key: group.key.uppercased()).frame(width: 32).padding(.top, 4)
+                                        .accessibilityLabel("Shortcut \(group.key.uppercased())")
+                                        .accessibilityIdentifier("shortcut-group-\(group.key)")
+                                    VStack(spacing: 0) {
+                                        ForEach(group.apps) { app in AppSettingsRow(model: model, app: app) }
+                                    }
+                                }
+                                .padding(.vertical, 4)
+                                if group.id != groups.last?.id || !unassigned.isEmpty { Divider() }
+                            }
+                            if !unassigned.isEmpty {
+                                HStack(alignment: .top, spacing: 12) {
+                                    Text("No key").font(.system(size: 10)).foregroundStyle(.secondary)
+                                        .frame(width: 32).padding(.top, 9)
+                                        .accessibilityIdentifier("apps-without-key")
+                                    VStack(spacing: 0) {
+                                        ForEach(unassigned) { app in AppSettingsRow(model: model, app: app) }
+                                    }
+                                }
+                                .padding(.vertical, 4)
+                            }
                         }
                     }
                 }
             }
-            Text("Click an app's keys to pin a shortcut or change its repeat behavior. Pinned apps stay here when closed. Apps without pins use their first letter while running.")
-                .font(.system(size: 12)).foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }
@@ -369,44 +323,39 @@ private struct AppSettingsRow: View {
     private var bindings: [AppBinding] {
         model.preferences.bindings.filter { $0.bundleID == app.id }.sorted { $0.key < $1.key }
     }
-    private var status: String {
-        let state = app.isRunning ? (app.isHidden ? "Hidden" : "Running") : "Not running"
-        return bindings.isEmpty ? state : "\(state) · Pinned"
-    }
 
     var body: some View {
-        HStack(spacing: 10) {
-            AppIcon(path: app.path, size: 28)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(app.name).font(.system(size: 13, weight: .medium)).lineLimit(1)
-                Text(status).font(.system(size: 10)).foregroundStyle(.secondary)
-            }
-            Spacer(minLength: 8)
-            Button { editingKeys = true } label: {
-                HStack(spacing: 5) {
-                    Image(systemName: bindings.isEmpty ? "pin" : "pin.fill")
-                        .font(.system(size: 10)).foregroundStyle(bindings.isEmpty ? Color.secondary : Color.teal)
-                    if bindings.isEmpty {
-                        KeyCap(key: firstKey(app.name).uppercased())
-                    } else {
-                        ForEach(Array(bindings.prefix(2))) { binding in KeyCap(key: binding.key.uppercased()) }
-                        if bindings.count > 2 { Text("+\(bindings.count - 2)").font(.system(size: 11)) }
+        HStack(spacing: 8) {
+            Button { model.activate(app) } label: {
+                HStack(spacing: 9) {
+                    AppIcon(path: app.path, size: 22)
+                    Text(app.name).font(.system(size: 13)).lineLimit(1)
+                    if !app.isRunning {
+                        Text("Closed").font(.system(size: 10)).foregroundStyle(.secondary)
+                    } else if app.isHidden {
+                        Text("Hidden").font(.system(size: 10)).foregroundStyle(.secondary)
                     }
+                    Spacer(minLength: 0)
                 }
-                .contentShape(Rectangle())
+                .frame(minHeight: 24).contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
-            .help("Manage keys for \(app.name)")
+            .buttonStyle(.plain).help("Open \(app.name)")
+            .accessibilityLabel("Open \(app.name)")
+            .accessibilityValue(!app.isRunning ? "Closed" : app.isHidden ? "Hidden" : "Running")
+            .accessibilityIdentifier("app-open-\(app.id)")
+            Button { editingKeys = true } label: {
+                Image(systemName: bindings.isEmpty ? "pin" : "pin.fill")
+                    .font(.system(size: 11))
+                    .foregroundStyle(bindings.isEmpty ? Color.secondary : Color.teal)
+                    .frame(width: 24, height: 24).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain).help("Manage keys for \(app.name)")
             .accessibilityLabel("Manage keys for \(app.name)")
-            .accessibilityValue(bindings.isEmpty ? "Automatic key \(firstKey(app.name).uppercased())" : "Pinned keys \(bindings.map { $0.key.uppercased() }.joined(separator: ", "))")
+            .accessibilityValue(bindings.isEmpty ? "No pinned keys" : "Pinned keys \(bindings.map { $0.key.uppercased() }.joined(separator: ", "))")
             .accessibilityIdentifier("app-keys-\(app.id)")
             .popover(isPresented: $editingKeys) { AppKeysEditor(model: model, app: app) }
-            Button("Open") { model.activate(app) }
-                .buttonStyle(.borderless)
-                .accessibilityLabel("Open \(app.name)")
-                .accessibilityIdentifier("app-open-\(app.id)")
         }
-        .padding(.vertical, 10)
+        .padding(.vertical, 4)
     }
 }
 
@@ -714,11 +663,12 @@ private struct LauncherSearchField: NSViewRepresentable {
 }
 
 private struct SettingsCard<Content: View>: View {
+    var padding: CGFloat = 14
     @ViewBuilder var content: Content
     var body: some View {
         content
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(17)
+            .padding(padding)
             .background(Color(NSColor.controlBackgroundColor))
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.primary.opacity(0.06)))
@@ -759,8 +709,4 @@ private func triggerTitle(_ trigger: Trigger) -> String {
 
 private func firstKey(_ name: String) -> String {
     ShortcutKey.initial(for: name) ?? ""
-}
-
-private func pinModifier(_ trigger: Trigger) -> String {
-    trigger == .rightCommand ? "Option" : "Command"
 }

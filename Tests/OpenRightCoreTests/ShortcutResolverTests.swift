@@ -103,4 +103,34 @@ final class ShortcutResolverTests: XCTestCase {
     func testNoRecencyFallsBackToDeterministicNameOrder() {
         XCTAssertEqual(ShortcutResolver.action(for: "s", candidates: [slack, signal, safari], frontmostID: nil, recentIDs: [], preferences: Preferences()), .activate(safari))
     }
+
+    func testTargetsIncludeNaturalMatchesWithTheirOwnAlternatePins() {
+        let teams = AppCandidate(id: "teams", name: "Microsoft Teams", path: "/Teams.app")
+        let code = AppCandidate(id: "code", name: "T3 Code", path: "/Code.app")
+        let tailscale = AppCandidate(id: "tailscale", name: "Tailscale", path: "/Tailscale.app")
+        let preferences = Preferences(bindings: [
+            AppBinding(key: "t", bundleID: teams.id, name: teams.name, path: teams.path),
+            AppBinding(key: "3", bundleID: code.id, name: code.name, path: code.path)
+        ])
+        XCTAssertEqual(ShortcutResolver.targets(for: "t", candidates: [code, teams, tailscale], recentIDs: [tailscale.id, code.id], preferences: preferences), [teams, tailscale, code])
+        XCTAssertEqual(ShortcutResolver.targets(for: "3", candidates: [code, teams, tailscale], recentIDs: [], preferences: preferences), [code])
+    }
+
+    func testHidePinAndDisabledKeyLimitTheDisplayedTargets() {
+        let binding = AppBinding(key: "s", bundleID: mail.id, name: mail.name, path: mail.path, behavior: .hide)
+        var preferences = Preferences(bindings: [binding])
+        XCTAssertEqual(ShortcutResolver.targets(for: "s", candidates: [mail, safari, slack], recentIDs: [], preferences: preferences), [mail])
+        preferences.disabledKeys = "s"
+        XCTAssertTrue(ShortcutResolver.targets(for: "s", candidates: [mail, safari, slack], recentIDs: [], preferences: preferences).isEmpty)
+    }
+
+    func testClosedPinIsTheOnlyTargetUntilItLaunches() {
+        let binding = AppBinding(key: "s", bundleID: mail.id, name: "Old Mail", path: "/Old/Mail.app")
+        var current = mail
+        current.isRunning = false
+        let preferences = Preferences(bindings: [binding])
+        XCTAssertEqual(ShortcutResolver.targets(for: "s", candidates: [current, safari], recentIDs: [], preferences: preferences), [current])
+        current.isRunning = true
+        XCTAssertEqual(ShortcutResolver.targets(for: "s", candidates: [current, safari], recentIDs: [], preferences: preferences), [current, safari])
+    }
 }

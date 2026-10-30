@@ -9,40 +9,44 @@ public enum ShortcutResolver {
         preferences: Preferences
     ) -> ShortcutAction {
         let preferences = preferences.sanitized()
-        guard let key = ShortcutKey.normalized(key), !preferences.disabledKeys.contains(key) else { return .none }
-        let running = uniqueCandidates(candidates.filter(\.isRunning))
-
-        if let binding = preferences.bindings.first(where: { $0.key == key }) {
-            guard let candidate = running.first(where: { $0.id == binding.bundleID }) else { return .launch(binding) }
-            if binding.behavior == .hide {
-                if candidate.id == frontmostID, !candidate.isHidden { return .hide(candidate) }
-                return .activate(candidate)
-            }
-            // A pin leads its key's group even if its name starts with another
-            // letter. Repeated presses then traverse natural matches and wrap.
-            let others = orderedByRecency(
-                running.filter { $0.id != candidate.id && ShortcutKey.initial(for: $0.name) == key },
-                recentIDs: recentIDs
-            )
-            let group = [candidate] + others
-            if let activeIndex = group.firstIndex(where: { $0.id == frontmostID && !$0.isHidden }) {
-                return .activate(group[(activeIndex + 1) % group.count])
-            }
-            return .activate(candidate)
-        }
-
-        let matches = orderedByRecency(
-            running.filter { ShortcutKey.initial(for: $0.name) == key },
-            recentIDs: recentIDs
-        )
-        guard let first = matches.first else { return .none }
-        guard let activeIndex = matches.firstIndex(where: { $0.id == frontmostID && !$0.isHidden }) else {
+        guard let key = ShortcutKey.normalized(key) else { return .none }
+        let group = targets(for: key, candidates: candidates, recentIDs: recentIDs, preferences: preferences)
+        guard let first = group.first else { return .none }
+        let binding = preferences.bindings.first { $0.key == key }
+        if let binding, !first.isRunning { return .launch(binding) }
+        guard let activeIndex = group.firstIndex(where: { $0.id == frontmostID && !$0.isHidden }) else {
             return .activate(first)
         }
-        if preferences.repeatBehavior == .hide {
-            return .hide(matches[activeIndex])
+        if (binding?.behavior ?? preferences.repeatBehavior) == .hide {
+            return .hide(group[activeIndex])
         }
-        return .activate(matches[(activeIndex + 1) % matches.count])
+        return .activate(group[(activeIndex + 1) % group.count])
+    }
+
+    /// The same ordered targets drive shortcut actions and the settings groups.
+    public static func targets(
+        for key: String,
+        candidates: [AppCandidate],
+        recentIDs: [String],
+        preferences: Preferences
+    ) -> [AppCandidate] {
+        let preferences = preferences.sanitized()
+        guard let key = ShortcutKey.normalized(key), !preferences.disabledKeys.contains(key) else { return [] }
+        let running = uniqueCandidates(candidates.filter(\.isRunning))
+        if let binding = preferences.bindings.first(where: { $0.key == key }) {
+            guard let pinned = running.first(where: { $0.id == binding.bundleID }) else {
+                let closed = candidates.first { $0.id == binding.bundleID }
+                    ?? AppCandidate(id: binding.bundleID, name: binding.name, path: binding.path, isRunning: false)
+                return [closed]
+            }
+            if binding.behavior == .hide { return [pinned] }
+            let others = orderedByRecency(
+                running.filter { $0.id != pinned.id && ShortcutKey.initial(for: $0.name) == key },
+                recentIDs: recentIDs
+            )
+            return [pinned] + others
+        }
+        return orderedByRecency(running.filter { ShortcutKey.initial(for: $0.name) == key }, recentIDs: recentIDs)
     }
 }
 

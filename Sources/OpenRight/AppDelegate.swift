@@ -162,10 +162,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     func showSettings() {
         dismissLauncher()
         if settingsWindow == nil {
-            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 820, height: 650),
+            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 720, height: 560),
                                   styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
             window.title = "OpenRight"
-            window.minSize = NSSize(width: 780, height: 600)
+            window.minSize = NSSize(width: 660, height: 440)
             window.isReleasedWhenClosed = false
             window.contentView = NSHostingView(rootView: SettingsView(model: model))
             window.center()
