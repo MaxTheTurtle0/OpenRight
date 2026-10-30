@@ -15,6 +15,8 @@ Automated core tests cannot verify real keyboard events, Accessibility permissio
 
 - [ ] Hold Right Command for several seconds. No popup appears.
 - [ ] Press Right Command + a running app's initial. The app gains focus.
+- [ ] Close a running app's last window without quitting, then press its shortcut. The app handles the normal macOS reopen request and opens a window if supported, as Zen does.
+- [ ] Minimize a running app's window, then press its shortcut. The window returns. Repeated activation of an app with an open window does not create extra windows.
 - [ ] Try three running apps with the same initial. Repeated presses while holding the trigger reach all three.
 - [ ] Choose Hide as the repeat behavior. A second press hides the focused app; another press brings it back.
 - [ ] Use Right Command + Option + a letter to pin the focused app. Confirm the pin appears in Settings and survives restart.

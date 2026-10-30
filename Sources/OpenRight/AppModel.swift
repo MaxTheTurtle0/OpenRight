@@ -152,24 +152,25 @@ final class AppModel: ObservableObject {
     }
 
     func activate(_ app: AppCandidate) {
-        if let running = NSRunningApplication.runningApplications(withBundleIdentifier: app.id).first(where: { !$0.isTerminated }) {
-            running.unhide()
-            if !running.activate(options: [.activateIgnoringOtherApps]) { statusMessage = "macOS could not focus \(app.name)." }
-        } else { launch(path: app.path, name: app.name, bundleID: app.id) }
+        // A normal open also sends a reopen request to an existing process,
+        // letting apps restore a minimized window or create one after the last closes.
+        launch(path: app.path, name: app.name, bundleID: app.id)
         didActivate?()
     }
 
     func launch(path: String, name: String, bundleID: String) {
-        let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) ?? URL(fileURLWithPath: path)
+        let running = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first(where: { !$0.isTerminated })
+        let url = running?.bundleURL ?? NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) ?? URL(fileURLWithPath: path)
         guard FileManager.default.fileExists(atPath: url.path), Bundle(url: url)?.bundleIdentifier == bundleID else {
             statusMessage = "\(name) is no longer at its saved location. Assign it again in Pins."
             return
         }
         let config = NSWorkspace.OpenConfiguration()
         config.activates = true
+        config.createsNewApplicationInstance = false
         NSWorkspace.shared.openApplication(at: url, configuration: config) { [weak self] _, error in
             guard let error else { return }
-            DispatchQueue.main.async { self?.statusMessage = "Could not launch \(name): \(error.localizedDescription)" }
+            DispatchQueue.main.async { self?.statusMessage = "Could not open \(name): \(error.localizedDescription)" }
         }
     }
 
