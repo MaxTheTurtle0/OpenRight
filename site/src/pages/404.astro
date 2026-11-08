@@ -1,0 +1,26 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="Not found — OpenRight" description="This page does not exist.">
+  <main class="nf wrap">
+    <p class="eyebrow">404</p>
+    <h1>No app starts with that letter.</h1>
+    <p><a class="btn primary" href="/">Back to OpenRight</a></p>
+  </main>
+</Base>
+
+<style>
+  .nf {
+    min-height: 80vh;
+    display: grid;
+    align-content: center;
+    gap: 12px;
+  }
+  h1 {
+    font-size: clamp(36px, 6vw, 72px);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin: 0 0 16px;
+  }
+</style>

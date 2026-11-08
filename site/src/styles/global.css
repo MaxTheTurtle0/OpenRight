@@ -1,0 +1,294 @@
+/* OpenRight — keycap-and-paper aesthetic. Accent taken from assets/icon.svg (#9333ea). */
+
+:root {
+  --paper: #f3efe6;
+  --paper-2: #ebe5d8;
+  --ink: #17141c;
+  --ink-2: #4a4452;
+  --ink-3: #847c8c;
+  --rule: #d8d0c0;
+  --accent: #9333ea;
+  --accent-ink: #ffffff;
+  --accent-soft: #9333ea1f;
+
+  --cap-top: #fbf9f4;
+  --cap-side: #ddd5c6;
+  --cap-edge: #c6bcaa;
+  --cap-text: #2a2530;
+  --cap-shadow: 0 1px 0 #ffffff inset, 0 -2px 0 #0000000d inset;
+
+  --font-display: "Bricolage Grotesque", ui-sans-serif, sans-serif;
+  --font-mono: "Martian Mono", ui-monospace, monospace;
+
+  --radius: 14px;
+  --max: 1180px;
+  --gutter: clamp(16px, 4vw, 40px);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #121016;
+    --paper-2: #1a1720;
+    --ink: #f1ecf6;
+    --ink-2: #b9b1c3;
+    --ink-3: #7d748a;
+    --rule: #2c2734;
+    --accent: #a855f7;
+    --accent-soft: #a855f726;
+    --cap-top: #2a2531;
+    --cap-side: #1b1720;
+    --cap-edge: #0b0a0d;
+    --cap-text: #ece6f2;
+    --cap-shadow: 0 1px 0 #ffffff14 inset, 0 -2px 0 #00000040 inset;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #121016;
+  --paper-2: #1a1720;
+  --ink: #f1ecf6;
+  --ink-2: #b9b1c3;
+  --ink-3: #7d748a;
+  --rule: #2c2734;
+  --accent: #a855f7;
+  --accent-soft: #a855f726;
+  --cap-top: #2a2531;
+  --cap-side: #1b1720;
+  --cap-edge: #0b0a0d;
+  --cap-text: #ece6f2;
+  --cap-shadow: 0 1px 0 #ffffff14 inset, 0 -2px 0 #00000040 inset;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 17px;
+  line-height: 1.55;
+  font-optical-sizing: auto;
+  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* faint paper grain */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* ---------- Keycaps ---------- */
+
+.cap {
+  --w: 1;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  min-width: calc(2.4em * var(--w));
+  height: 2.4em;
+  padding: 0.38em 0.55em 0.5em;
+  border-radius: 0.42em;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  line-height: 1;
+  color: var(--cap-text);
+  background: linear-gradient(180deg, var(--cap-top), var(--cap-top) 60%, var(--cap-side));
+  border: 1px solid var(--cap-edge);
+  box-shadow: var(--cap-shadow), 0 3px 0 var(--cap-edge), 0 4px 10px #0000001a;
+  transform: translateY(0);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.cap .glyph {
+  font-size: 1.05em;
+}
+
+.cap .label {
+  font-size: 0.56em;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+}
+
+.cap.center {
+  align-items: center;
+  justify-content: center;
+}
+
+.cap.down,
+.cap.accent {
+  transform: translateY(2px);
+  box-shadow: var(--cap-shadow), 0 1px 0 var(--cap-edge), 0 2px 4px #0000001a;
+}
+
+.cap.accent {
+  background: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 70%, #000);
+  color: var(--accent-ink);
+  box-shadow: 0 1px 0 #ffffff40 inset, 0 1px 0 color-mix(in srgb, var(--accent) 60%, #000),
+    0 6px 24px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.cap.sm {
+  font-size: 12px;
+}
+
+.combo {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.combo .plus {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 22px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 16px;
+  text-decoration: none;
+  border: 1.5px solid var(--ink);
+  transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn.primary {
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow: 0 4px 0 var(--accent);
+}
+
+.btn.primary:hover {
+  box-shadow: 0 6px 0 var(--accent);
+}
+
+.btn.ghost {
+  background: transparent;
+  color: var(--ink);
+}
+
+.btn.ghost:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.btn svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+/* ---------- Reveal ---------- */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 90ms + 80ms);
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+
+.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .rise,
+  .reveal {
+    animation: none;
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.no-js .reveal {
+  opacity: 1;
+  transform: none;
+}
