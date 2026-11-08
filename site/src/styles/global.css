@@ -1,4 +1,4 @@
-/* OpenRight — keycap-and-paper aesthetic. Accent taken from assets/icon.svg (#9333ea). */
+/* OpenRight — keycap-and-paper aesthetic. Accent taken from the app icon's blue tile. */
 
 :root {
   --paper: #f3efe6;
@@ -7,9 +7,9 @@
   --ink-2: #4a4452;
   --ink-3: #847c8c;
   --rule: #d8d0c0;
-  --accent: #9333ea;
+  --accent: #1558f8;
   --accent-ink: #ffffff;
-  --accent-soft: #9333ea1f;
+  --accent-soft: #1558f81f;
 
   --cap-top: #fbf9f4;
   --cap-side: #ddd5c6;
@@ -33,8 +33,8 @@
     --ink-2: #b9b1c3;
     --ink-3: #7d748a;
     --rule: #2c2734;
-    --accent: #a855f7;
-    --accent-soft: #a855f726;
+    --accent: #4d8dff;
+    --accent-soft: #4d8dff26;
     --cap-top: #2a2531;
     --cap-side: #1b1720;
     --cap-edge: #0b0a0d;
@@ -50,8 +50,8 @@
   --ink-2: #b9b1c3;
   --ink-3: #7d748a;
   --rule: #2c2734;
-  --accent: #a855f7;
-  --accent-soft: #a855f726;
+  --accent: #4d8dff;
+  --accent-soft: #4d8dff26;
   --cap-top: #2a2531;
   --cap-side: #1b1720;
   --cap-edge: #0b0a0d;

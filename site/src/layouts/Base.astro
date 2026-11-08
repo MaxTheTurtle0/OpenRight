@@ -19,12 +19,19 @@ const { title, description } = Astro.props;
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#f3efe6" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#121016" media="(prefers-color-scheme: dark)" />
-    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
+    <meta property="og:image" content={new URL("/og.png", Astro.site)} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="OpenRight app icon: a blue tile with stacked windows, a Command symbol and a right arrow" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
