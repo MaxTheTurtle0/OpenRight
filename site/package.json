@@ -1,0 +1,17 @@
+{
+  "name": "openright-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --host",
+    "build": "astro build",
+    "preview": "astro preview --host",
+    "deploy": "astro build && wrangler deploy"
+  },
+  "dependencies": {
+    "astro": "^5.18.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.158.0"
+  }
+}

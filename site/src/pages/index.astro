@@ -1,0 +1,974 @@
+---
+import Base from "../layouts/Base.astro";
+
+const repo = "https://github.com/MaxTheTurtle0/OpenRight";
+const latest = `${repo}/releases/latest`;
+const dmg = `${repo}/releases/latest/download/OpenRight.dmg`;
+
+// Every item below is taken from the repository README.
+const shortcuts = [
+  { keys: [["⌘", "right cmd"], ["A–Z"]], action: "Focus a running app whose name starts with that letter" },
+  { keys: [["↻", "same again"]], action: "Cycle through matching apps, or hide the focused app, according to settings" },
+  { keys: [["⌘", "right cmd"], ["⌥", "option"], ["A–Z / 0–9"]], action: "Pin that key to the focused app" },
+  { keys: [["⌘", "right cmd"], ["pinned key"]], action: "Focus the pinned app, or launch it if it is closed" },
+  { keys: [["⌘", "right cmd"], ["space"]], action: "Search installed apps" },
+  { keys: [["esc"]], action: "Close the launcher" },
+];
+
+const features = [
+  {
+    tag: "Pins",
+    title: "Pin any key to any app",
+    body: "Right Command + Option + a letter or digit pins that key to the focused app. Pinned keys launch the app if it is closed, and Add pin includes installed apps that are not running.",
+    wide: true,
+  },
+  {
+    tag: "Search",
+    title: "A launcher for everything else",
+    body: "Right Command + Space searches installed apps. Type part of a name, pick with the arrow keys, press Return to focus or launch. It also opens from the menu bar.",
+  },
+  {
+    tag: "Trigger",
+    title: "Your choice of trigger",
+    body: "Right Command, Right Option, or Control + Option. With Right Option or Control + Option, add Command to pin the focused app.",
+  },
+  {
+    tag: "Left ⌘",
+    title: "Left Command stays yours",
+    body: "Ordinary Left Command shortcuts keep working, and unmapped shortcuts pass through to the focused app.",
+  },
+  {
+    tag: "Layouts",
+    title: "Follows your keyboard layout",
+    body: "OpenRight uses translated key characters, so letter assignments follow the current keyboard layout.",
+  },
+  {
+    tag: "Updates",
+    title: "Signed in-app updates",
+    body: "Sparkle verifies each downloaded update with the public Ed25519 key embedded in the app before extracting it. You choose when to install and relaunch.",
+    wide: true,
+  },
+  {
+    tag: "Privacy",
+    title: "Records nothing you type",
+    body: "No typed keys recorded, no analytics, no reading window contents. Update checks and downloads contact GitHub; preferences stay in a local JSON file.",
+  },
+  {
+    tag: "Settings",
+    title: "Grouped by key",
+    body: "Settings group apps by their shortcut keys, pinned app first. Disable keys, pause shortcuts, and enable launch at login.",
+  },
+  {
+    tag: "rcmd",
+    title: "Polite next to rcmd",
+    body: "If rcmd is running, OpenRight suspends its Right Command shortcuts so both apps never act on one keypress.",
+  },
+];
+
+const notIncluded = ["Window switcher", "Window search", "Spaces controls", "Lenses", "Saved workspaces"];
+---
+
+<Base
+  title="OpenRight — Right Command app switcher for macOS"
+  description="Open-source macOS app switcher with Right Command shortcuts and signed in-app updates."
+>
+  <header class="nav wrap">
+    <a class="brand" href="#top" aria-label="OpenRight home">
+      <img src="/icon-96.png" width="30" height="30" alt="" />
+      <span>OpenRight</span>
+    </a>
+    <nav aria-label="Primary">
+      <a href="#how">How it works</a>
+      <a href="#shortcuts">Shortcuts</a>
+      <a href="#features">Features</a>
+      <a href="#download">Download</a>
+    </nav>
+    <div class="nav-end">
+      <button class="theme" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z" fill="currentColor" /></svg>
+      </button>
+      <a class="gh" href={repo} aria-label="OpenRight on GitHub">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z" /></svg>
+      </a>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- HERO -->
+    <section class="hero wrap">
+      <div class="hero-copy">
+        <p class="eyebrow rise" style="--i:0">Open source · MIT · macOS 13+</p>
+        <h1 class="rise" style="--i:1">
+          Hold <span class="hl">Right&nbsp;Command</span>.<br />
+          Press a letter.<br />
+          <em>You're there.</em>
+        </h1>
+        <p class="lede rise" style="--i:2">
+          OpenRight is a small, open-source macOS app switcher with Right Command shortcuts and signed in-app
+          updates. Press an app's first letter to focus it — the ordinary Left Command shortcuts keep working.
+        </p>
+        <div class="ctas rise" style="--i:3">
+          <a class="btn primary" href={dmg}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 20h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            Download for Mac
+          </a>
+          <a class="btn ghost" href={repo}>View on GitHub</a>
+        </div>
+        <p class="meta mono rise" style="--i:4">Universal · Apple Silicon &amp; Intel · Developer ID signed &amp; notarized</p>
+      </div>
+
+      <div class="stage rise" style="--i:2" aria-label="Interactive illustration: Right Command plus a letter">
+        <div class="deck">
+          <div class="deck-row" aria-hidden="true">
+            <span class="cap center ghostcap">fn</span>
+            <span class="cap ghostcap" style="--w:1.4"><span class="glyph">⌥</span><span class="label">option</span></span>
+            <span class="cap ghostcap" style="--w:1.8"><span class="glyph">⌘</span><span class="label">command</span></span>
+            <span class="cap ghostcap space" style="--w:3"></span>
+            <span class="cap accent big" style="--w:1.8"><span class="glyph">⌘</span><span class="label">command</span></span>
+            <span class="cap ghostcap" style="--w:1.4"><span class="glyph">⌥</span><span class="label">option</span></span>
+          </div>
+          <div class="plus-big" aria-hidden="true">+</div>
+          <div class="letter-wrap">
+            <span class="cap center letter" id="letter" aria-live="polite">S</span>
+          </div>
+          <p class="readout mono">
+            <span class="arrow">→</span> focus the running app that starts with
+            <b id="letter-echo">S</b>
+          </p>
+          <p class="hint mono">Try it — press a letter on your keyboard.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="how" id="how">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <p class="eyebrow">01 — How it works</p>
+          <h2>Three steps, then muscle memory.</h2>
+        </div>
+        <ol class="steps">
+          <li class="reveal" style="--i:0">
+            <span class="num">1</span>
+            <h3>Drag it in</h3>
+            <p>Download the latest DMG from GitHub Releases, open it, and drag OpenRight into Applications. It lives in the menu bar.</p>
+          </li>
+          <li class="reveal" style="--i:1">
+            <span class="num">2</span>
+            <h3>Grant access</h3>
+            <p>OpenRight needs Accessibility access to handle global shortcuts. Grant it in System Settings when the app asks.</p>
+          </li>
+          <li class="reveal" style="--i:2">
+            <span class="num">3</span>
+            <h3>Hold &amp; press</h3>
+            <p>Hold Right Command and press an app's first letter to focus it. Press it again to cycle through matches or hide the app.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- SHORTCUTS -->
+    <section class="shortcuts wrap" id="shortcuts">
+      <div class="section-head reveal">
+        <p class="eyebrow">02 — Shortcuts</p>
+        <h2>The whole vocabulary fits on one card.</h2>
+      </div>
+      <div class="card reveal">
+        <ul class="sc-list">
+          {
+            shortcuts.map((s) => (
+              <li>
+                <span class="combo">
+                  {s.keys.map((k, i) => (
+                    <>
+                      {i > 0 && <span class="plus">+</span>}
+                      {k.length === 2 ? (
+                        <span class={`cap sm ${k[0] === "⌘" ? "accent" : ""}`} style={k[0] === "⌘" ? "--w:1.6" : ""}>
+                          <span class="glyph">{k[0]}</span>
+                          <span class="label">{k[1]}</span>
+                        </span>
+                      ) : (
+                        <span class="cap sm center">{k[0]}</span>
+                      )}
+                    </>
+                  ))}
+                </span>
+                <span class="sc-action">{s.action}</span>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="card-foot">
+          In search, use the arrow keys to select a result and press Return to focus or launch it.
+        </p>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="features wrap" id="features">
+      <div class="section-head reveal">
+        <p class="eyebrow">03 — Features</p>
+        <h2>Small app. Sharp edges filed off.</h2>
+      </div>
+      <div class="grid">
+        {
+          features.map((f, i) => (
+            <article class={`feat reveal ${f.wide ? "wide" : ""}`} style={`--i:${i % 3}`}>
+              <span class="tag mono">{f.tag}</span>
+              <h3>{f.title}</h3>
+              <p>{f.body}</p>
+            </article>
+          ))
+        }
+      </div>
+
+      <div class="scope reveal">
+        <div>
+          <p class="eyebrow">Deliberately out of scope</p>
+          <p class="scope-copy">
+            OpenRight focuses on app switching, pinned launch shortcuts, app search, and signed in-app updates. It uses
+            public macOS APIs and leaves Spaces to macOS.
+          </p>
+        </div>
+        <ul>
+          {notIncluded.map((n) => <li>{n}</li>)}
+        </ul>
+      </div>
+    </section>
+
+    <!-- DOWNLOAD -->
+    <section class="download" id="download">
+      <div class="wrap dl-inner">
+        <div class="dl-copy reveal">
+          <img src="/icon-192.png" width="72" height="72" alt="OpenRight icon" class="dl-icon" loading="lazy" />
+          <h2>Get OpenRight.</h2>
+          <p>
+            Free and MIT-licensed. Releases are signed with Developer ID and notarized by Apple before they are
+            published on GitHub.
+          </p>
+          <div class="ctas">
+            <a class="btn primary invert" href={dmg}>Download the DMG</a>
+            <a class="btn ghost invert" href={latest}>All release files</a>
+          </div>
+          <a class="star mono" href={repo}>★ Star or fork on GitHub →</a>
+        </div>
+
+        <div class="dl-side reveal" style="--i:1">
+          <dl class="req">
+            <div><dt>macOS</dt><dd>13 Ventura or later</dd></div>
+            <div><dt>Chip</dt><dd>Universal — Apple Silicon &amp; Intel</dd></div>
+            <div><dt>Permission</dt><dd>Accessibility (macOS may also ask for Input Monitoring)</dd></div>
+            <div><dt>Updates</dt><dd>In-app via Sparkle, feed on GitHub Releases</dd></div>
+            <div><dt>License</dt><dd>MIT</dd></div>
+          </dl>
+          <div class="term">
+            <div class="term-bar"><i></i><i></i><i></i><span class="mono">build from source</span></div>
+            <pre class="mono"><code><span class="c"># Xcode or Command Line Tools, Swift 5.9+</span>
+git clone {repo}.git
+cd OpenRight
+./scripts/build.sh
+./scripts/install.sh
+open ~/Applications/OpenRight.app</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot wrap">
+    <div class="foot-brand">
+      <img src="/icon-96.png" width="22" height="22" alt="" loading="lazy" />
+      <span>OpenRight</span>
+      <span class="mono small">MIT License</span>
+    </div>
+    <p class="small fine">
+      An independent implementation inspired by <a href="https://lowtechguys.com/rcmd/">rcmd</a>. It does not contain rcmd
+      code, assets, or configuration.
+    </p>
+    <nav class="foot-links" aria-label="Footer">
+      <a href={repo}>GitHub</a>
+      <a href={latest}>Releases</a>
+      <a href={`${repo}/blob/main/LICENSE`}>License</a>
+      <a class="more" href="https://ma2.dev">More projects by Andrei →</a>
+    </nav>
+  </footer>
+
+  <script>
+    // Theme toggle
+    const root = document.documentElement;
+    document.querySelector(".theme")?.addEventListener("click", () => {
+      const current =
+        root.dataset.theme ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      const next = current === "dark" ? "light" : "dark";
+      root.dataset.theme = next;
+      try {
+        localStorage.setItem("theme", next);
+      } catch (_) {}
+    });
+
+    // Reveal on scroll
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            e.target.classList.add("in");
+            io.unobserve(e.target);
+          }
+        }
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" },
+    );
+    document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+
+    // Hero keycap: cycles letters; responds to real key presses
+    const letter = document.getElementById("letter");
+    const echo = document.getElementById("letter-echo");
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const seq = "SMFTNCX".split("");
+    let idx = 0;
+    let userTyped = false;
+
+    function show(ch: string) {
+      if (!letter || !echo) return;
+      letter.textContent = ch;
+      echo.textContent = ch;
+      letter.classList.remove("press");
+      void letter.offsetWidth;
+      letter.classList.add("press");
+    }
+
+    if (!reduce) {
+      setInterval(() => {
+        if (userTyped) return;
+        idx = (idx + 1) % seq.length;
+        show(seq[idx]);
+      }, 1800);
+    }
+
+    window.addEventListener("keydown", (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.target instanceof HTMLElement && e.target.closest("input, textarea")) return;
+      if (/^[a-z]$/i.test(e.key)) {
+        userTyped = true;
+        show(e.key.toUpperCase());
+      }
+    });
+  </script>
+</Base>
+
+<style>
+  /* ---------- Nav ---------- */
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 22px;
+    padding-bottom: 22px;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 19px;
+    letter-spacing: -0.01em;
+  }
+  .brand img {
+    border-radius: 8px;
+  }
+  .nav nav {
+    display: flex;
+    gap: 28px;
+    font-size: 15px;
+  }
+  .nav nav a,
+  .foot-links a {
+    text-decoration: none;
+    color: var(--ink-2);
+    background: linear-gradient(var(--accent), var(--accent)) 0 100% / 0 1.5px no-repeat;
+    transition: background-size 0.25s ease, color 0.2s ease;
+  }
+  .nav nav a:hover,
+  .foot-links a:hover {
+    color: var(--ink);
+    background-size: 100% 1.5px;
+  }
+  .nav-end {
+    display: flex;
+    gap: 8px;
+  }
+  .theme,
+  .gh {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--rule);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .theme:hover,
+  .gh:hover {
+    border-color: var(--ink);
+    transform: rotate(-8deg);
+  }
+  .theme svg,
+  .gh svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: clamp(28px, 5vw, 72px);
+    align-items: center;
+    padding-top: clamp(28px, 6vw, 72px);
+    padding-bottom: clamp(56px, 9vw, 120px);
+    overflow-x: clip;
+  }
+  h1 {
+    font-size: clamp(44px, 7.2vw, 92px);
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+    font-weight: 750;
+    margin: 18px 0 26px;
+  }
+  h1 em {
+    font-style: normal;
+    font-weight: 300;
+    color: var(--ink-2);
+  }
+  .hl {
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  .lede {
+    font-size: clamp(17px, 1.5vw, 19.5px);
+    color: var(--ink-2);
+    max-width: 34em;
+    margin: 0 0 30px;
+  }
+  .ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .meta {
+    margin-top: 22px;
+    font-size: 11.5px;
+    color: var(--ink-3);
+    letter-spacing: 0.02em;
+  }
+
+  .stage {
+    position: relative;
+  }
+  .stage::before {
+    content: "";
+    position: absolute;
+    inset: -12% -8%;
+    background: radial-gradient(closest-side, var(--accent-soft), transparent);
+    z-index: -1;
+  }
+  .deck {
+    border: 1px solid var(--rule);
+    border-radius: 28px;
+    padding: clamp(22px, 3.4vw, 40px);
+    background:
+      radial-gradient(circle at 1px 1px, var(--rule) 1px, transparent 1.4px) 0 0 / 14px 14px,
+      var(--paper-2);
+    box-shadow: 0 30px 60px -30px #00000040;
+    transform: rotate(-1.4deg);
+  }
+  .deck-row {
+    display: flex;
+    gap: 7px;
+    justify-content: flex-end;
+    overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, #000 22%);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 22%);
+    padding: 4px 2px 8px;
+  }
+  .deck-row .cap {
+    font-size: clamp(11px, 1.3vw, 14px);
+    flex: none;
+  }
+  .ghostcap {
+    opacity: 0.85;
+  }
+  .space {
+    flex: 1 1 auto !important;
+    min-width: 4em;
+  }
+  .cap.big {
+    animation: hold 3.6s ease-in-out infinite;
+  }
+  @keyframes hold {
+    0%,
+    100% {
+      box-shadow: 0 1px 0 #ffffff40 inset, 0 1px 0 color-mix(in srgb, var(--accent) 60%, #000),
+        0 6px 24px color-mix(in srgb, var(--accent) 35%, transparent);
+    }
+    50% {
+      box-shadow: 0 1px 0 #ffffff40 inset, 0 1px 0 color-mix(in srgb, var(--accent) 60%, #000),
+        0 8px 40px color-mix(in srgb, var(--accent) 70%, transparent);
+    }
+  }
+  .plus-big {
+    font-family: var(--font-mono);
+    color: var(--ink-3);
+    text-align: right;
+    margin: 10px 18% 4px 0;
+    font-size: 22px;
+  }
+  .letter-wrap {
+    display: flex;
+    justify-content: flex-end;
+    padding-right: 12%;
+  }
+  .letter {
+    font-size: clamp(34px, 5vw, 56px);
+    font-weight: 600;
+  }
+  .letter.press {
+    animation: tap 0.42s cubic-bezier(0.3, 0.7, 0.3, 1);
+  }
+  @keyframes tap {
+    0% {
+      transform: translateY(0);
+    }
+    30% {
+      transform: translateY(4px);
+      box-shadow: var(--cap-shadow), 0 0 0 var(--cap-edge);
+      background: var(--accent-soft);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+  .readout {
+    margin: 28px 0 0;
+    font-size: 13px;
+    color: var(--ink-2);
+    border-top: 1px dashed var(--rule);
+    padding-top: 16px;
+  }
+  .readout .arrow {
+    color: var(--accent);
+  }
+  .readout b {
+    color: var(--accent);
+  }
+  .hint {
+    margin: 6px 0 0;
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+
+  /* ---------- Section heads ---------- */
+  .section-head {
+    margin-bottom: clamp(28px, 4vw, 48px);
+    max-width: 760px;
+  }
+  h2 {
+    font-size: clamp(32px, 4.6vw, 58px);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-weight: 700;
+    margin: 12px 0 0;
+  }
+
+  /* ---------- How ---------- */
+  .how {
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: clamp(64px, 9vw, 120px) 0;
+  }
+  .steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    counter-reset: step;
+  }
+  .steps li {
+    padding: 0 clamp(16px, 3vw, 36px);
+    border-left: 1px solid var(--rule);
+  }
+  .steps li:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .num {
+    display: block;
+    font-size: clamp(72px, 9vw, 128px);
+    font-weight: 200;
+    line-height: 0.9;
+    letter-spacing: -0.05em;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--accent);
+  }
+  .steps h3 {
+    font-size: 24px;
+    letter-spacing: -0.015em;
+    margin: 18px 0 8px;
+  }
+  .steps p {
+    margin: 0;
+    color: var(--ink-2);
+  }
+
+  /* ---------- Shortcuts ---------- */
+  .shortcuts {
+    padding-top: clamp(64px, 9vw, 120px);
+    padding-bottom: clamp(32px, 5vw, 64px);
+  }
+  .card {
+    border: 1px solid var(--rule);
+    border-radius: 24px;
+    background: var(--paper-2);
+    overflow: hidden;
+  }
+  .sc-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .sc-list li {
+    display: grid;
+    grid-template-columns: minmax(0, 360px) 1fr;
+    gap: 24px;
+    align-items: center;
+    padding: 20px clamp(18px, 3vw, 32px);
+    border-bottom: 1px solid var(--rule);
+    transition: background 0.2s;
+  }
+  .sc-list li:hover {
+    background: var(--accent-soft);
+  }
+  .sc-action {
+    font-size: 17px;
+  }
+  .card-foot {
+    margin: 0;
+    padding: 16px clamp(18px, 3vw, 32px);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+
+  /* ---------- Features ---------- */
+  .features {
+    padding-top: clamp(64px, 9vw, 120px);
+    padding-bottom: clamp(64px, 9vw, 120px);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .feat {
+    position: relative;
+    padding: 26px 26px 28px;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--paper);
+    transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+  }
+  .feat.wide {
+    grid-column: span 2;
+  }
+  .feat:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 0 var(--accent);
+  }
+  .feat .tag {
+    display: inline-block;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 5px 9px;
+    border-radius: 6px;
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .feat h3 {
+    font-size: clamp(21px, 2vw, 26px);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin: 16px 0 10px;
+  }
+  .feat.wide h3 {
+    font-size: clamp(24px, 2.6vw, 34px);
+  }
+  .feat p {
+    margin: 0;
+    color: var(--ink-2);
+    max-width: 40em;
+  }
+
+  .scope {
+    margin-top: 44px;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 28px;
+    align-items: center;
+    padding: 28px;
+    border: 1.5px dashed var(--rule);
+    border-radius: var(--radius);
+  }
+  .scope-copy {
+    margin: 10px 0 0;
+    color: var(--ink-2);
+  }
+  .scope ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .scope li {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--rule);
+    color: var(--ink-3);
+    text-decoration: line-through;
+    text-decoration-color: var(--accent);
+  }
+
+  /* ---------- Download (inverted band) ---------- */
+  .download {
+    background: var(--ink);
+    color: var(--paper);
+    padding: clamp(72px, 10vw, 136px) 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .download::after {
+    content: "⌘";
+    position: absolute;
+    right: -0.08em;
+    bottom: -0.32em;
+    font-size: clamp(260px, 40vw, 560px);
+    line-height: 1;
+    color: var(--accent);
+    opacity: 0.16;
+    pointer-events: none;
+  }
+  .dl-inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: clamp(32px, 6vw, 80px);
+    align-items: start;
+  }
+  .dl-inner > *,
+  .grid > *,
+  .sc-list li > * {
+    min-width: 0;
+  }
+  .dl-icon {
+    border-radius: 18px;
+    box-shadow: 0 12px 40px color-mix(in srgb, var(--accent) 50%, transparent);
+  }
+  .dl-copy h2 {
+    font-size: clamp(44px, 6vw, 80px);
+    margin-top: 26px;
+  }
+  .dl-copy p {
+    color: color-mix(in srgb, var(--paper) 72%, transparent);
+    max-width: 30em;
+    margin: 18px 0 28px;
+  }
+  .btn.invert.primary {
+    background: var(--paper);
+    color: var(--ink);
+    border-color: var(--paper);
+  }
+  .btn.invert.ghost {
+    color: var(--paper);
+    border-color: color-mix(in srgb, var(--paper) 45%, transparent);
+  }
+  .btn.invert.ghost:hover {
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .star {
+    display: inline-block;
+    margin-top: 26px;
+    font-size: 12.5px;
+    color: color-mix(in srgb, var(--paper) 70%, transparent);
+    text-decoration: none;
+  }
+  .star:hover {
+    color: var(--paper);
+  }
+  .req {
+    margin: 0 0 22px;
+    border-top: 1px solid color-mix(in srgb, var(--paper) 18%, transparent);
+  }
+  .req div {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 16px;
+    padding: 13px 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--paper) 18%, transparent);
+  }
+  .req dt {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: color-mix(in srgb, var(--paper) 55%, transparent);
+    padding-top: 4px;
+  }
+  .req dd {
+    margin: 0;
+  }
+  .term {
+    border-radius: 14px;
+    background: #0b0a0e;
+    border: 1px solid #ffffff1a;
+    overflow: hidden;
+    color: #e9e3f0;
+  }
+  .term-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border-bottom: 1px solid #ffffff14;
+  }
+  .term-bar i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ffffff26;
+  }
+  .term-bar span {
+    margin-left: 10px;
+    font-size: 10.5px;
+    color: #ffffff70;
+  }
+  .term pre {
+    margin: 0;
+    padding: 18px;
+    font-size: 12.5px;
+    line-height: 1.75;
+    overflow-x: auto;
+  }
+  .term .c {
+    color: #7fb0ff;
+  }
+
+  /* ---------- Footer ---------- */
+  .foot {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 24px;
+    align-items: center;
+    padding-top: 36px;
+    padding-bottom: 44px;
+  }
+  .foot-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+  }
+  .foot-brand img {
+    border-radius: 6px;
+  }
+  .small {
+    font-size: 13px;
+    color: var(--ink-3);
+    font-weight: 400;
+  }
+  .fine {
+    margin: 0;
+    max-width: 42em;
+  }
+  .foot-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    font-size: 14px;
+  }
+  .foot-links .more {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 960px) {
+    .hero {
+      grid-template-columns: 1fr;
+    }
+    .stage {
+      max-width: 560px;
+    }
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .dl-inner {
+      grid-template-columns: 1fr;
+    }
+    .foot {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 760px) {
+    .nav nav {
+      display: none;
+    }
+    .steps {
+      grid-template-columns: 1fr;
+      gap: 36px;
+    }
+    .steps li,
+    .steps li:first-child {
+      padding: 0;
+      border-left: 0;
+    }
+    .sc-list li {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .scope {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 600px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+    .feat.wide {
+      grid-column: auto;
+    }
+    .deck {
+      transform: none;
+    }
+    .req div {
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+    .hl {
+      white-space: normal;
+    }
+  }
+</style>
