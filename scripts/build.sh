@@ -43,8 +43,7 @@ for resource in Resources/*; do
     cp "$resource" "$app_path/Contents/Resources/"
 done
 cp LICENSE "$app_path/Contents/Resources/LICENSE.txt"
-swift scripts/make-icon.swift "$staging_dir/OpenRight.iconset"
-iconutil -c icns "$staging_dir/OpenRight.iconset" -o "$app_path/Contents/Resources/AppIcon.icns"
+iconutil -c icns Resources/AppIcon.iconset -o "$app_path/Contents/Resources/AppIcon.icns"
 if [[ "$release" == true ]]; then
     ./scripts/sign-app.sh --release "$app_path"
 else
