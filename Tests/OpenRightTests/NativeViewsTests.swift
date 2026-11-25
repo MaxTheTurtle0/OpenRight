@@ -33,15 +33,17 @@ final class NativeViewsTests: XCTestCase {
     }
 
     @MainActor
-    func testShortcutGroupsCombineSharedKeysWithoutRedundantAliasGroups() {
+    func testShortcutGroupsKeepPinnedKeysExclusiveAndGroupUnpinnedMatches() {
         let model = AppModel(preferencesURL: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString))
         let passwords = AppCandidate(id: "passwords", name: "Passwords", path: "/Passwords.app")
         let preview = AppCandidate(id: "preview", name: "Preview", path: "/Preview.app")
+        let safari = AppCandidate(id: "safari", name: "Safari", path: "/Safari.app")
+        let slack = AppCandidate(id: "slack", name: "Slack", path: "/Slack.app")
         let teams = AppCandidate(id: "teams", name: "Microsoft Teams", path: "/Teams.app")
         let code = AppCandidate(id: "code", name: "T3 Code", path: "/Code.app")
         let tailscale = AppCandidate(id: "tailscale", name: "Tailscale", path: "/Tailscale.app")
         let grok = AppCandidate(id: "grok", name: "Grok Bot", path: "/Grok.app")
-        model.runningApps = [passwords, preview, teams, code, tailscale, grok]
+        model.runningApps = [passwords, preview, safari, slack, teams, code, tailscale, grok]
         model.installedApps = model.runningApps
         model.recentIDs = []
         model.preferences.bindings = [
@@ -50,10 +52,16 @@ final class NativeViewsTests: XCTestCase {
             AppBinding(key: "3", bundleID: code.id, name: code.name, path: code.path),
             AppBinding(key: "o", bundleID: grok.id, name: grok.name, path: grok.path)
         ]
-        XCTAssertEqual(model.shortcutGroups.map(\.key), ["3", "o", "p", "t"])
-        XCTAssertEqual(model.shortcutGroups.first { $0.key == "p" }?.apps, [passwords, preview])
-        XCTAssertEqual(model.shortcutGroups.first { $0.key == "t" }?.apps, [teams, code, tailscale])
-        XCTAssertTrue(model.appsWithoutShortcut.isEmpty)
+        XCTAssertEqual(model.shortcutGroups.map(\.key), ["3", "o", "p", "s", "t"])
+        XCTAssertEqual(model.shortcutGroups.first { $0.key == "3" }?.apps, [code])
+        XCTAssertEqual(model.shortcutGroups.first { $0.key == "p" }?.apps, [passwords])
+        XCTAssertEqual(model.shortcutGroups.first { $0.key == "s" }?.apps, [safari, slack])
+        XCTAssertEqual(model.shortcutGroups.first { $0.key == "t" }?.apps, [teams])
+        XCTAssertEqual(model.appsWithoutShortcut.map(\.id), [preview.id, tailscale.id])
+
+        model.removeBinding("t")
+        XCTAssertEqual(model.shortcutGroups.first { $0.key == "t" }?.apps, [tailscale])
+        XCTAssertEqual(model.shortcutGroups.first { $0.key == "m" }?.apps, [teams])
     }
 
     @MainActor

@@ -47,7 +47,7 @@ The installer preserves an existing app with an `.app.backup` suffix. Rename tha
 
 Search also opens from the menu bar. Type part of an app's name, use the arrow keys to select a result, and press Return to focus or launch it.
 
-Settings let you choose Right Command, Right Option, or Control + Option as the trigger. With Right Option or Control + Option, add Command to pin the focused app. Apps are grouped by their shortcut keys, with the pinned app first. An app can appear in several groups when multiple keys can reach it. Click an app's name to open it or its pin icon to manage keys and repeat behavior. Add pin includes installed apps that are not running. General settings let you disable keys, pause shortcuts, and enable launch at login.
+Settings let you choose Right Command, Right Option, or Control + Option as the trigger. With Right Option or Control + Option, add Command to pin the focused app. Apps are grouped by their shortcut keys. A pinned key exclusively targets its pinned app, and apps with an active pin do not cycle under their initial letter on another key. Unassigned running apps stay editable under No key. Click an app's name to open it or its pin icon to manage keys and repeat behavior. Add pin includes installed apps that are not running. General settings let you disable keys, pause shortcuts, and enable launch at login.
 
 OpenRight uses translated key characters, so letter assignments follow the current keyboard layout. Unmapped shortcuts pass through to the focused app. Secure Input can prevent a global keyboard listener from receiving events.
 

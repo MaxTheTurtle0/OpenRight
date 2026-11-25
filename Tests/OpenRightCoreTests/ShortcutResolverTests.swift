@@ -38,15 +38,45 @@ final class ShortcutResolverTests: XCTestCase {
         XCTAssertEqual(ShortcutResolver.action(for: "s", candidates: [safari, mail], frontmostID: nil, recentIDs: [safari.id], preferences: Preferences(bindings: [pin])), .activate(mail))
     }
 
-    func testPinnedCycleIncludesNaturalMatchesAndWrapsToPin() {
+    func testPinnedKeyOnlyTargetsPinnedApp() {
         let pin = AppBinding(key: "s", bundleID: mail.id, name: mail.name, path: mail.path)
         let preferences = Preferences(bindings: [pin])
         let apps = [mail, safari, slack]
         let recency = [slack.id, safari.id]
         XCTAssertEqual(ShortcutResolver.action(for: "s", candidates: apps, frontmostID: "unrelated", recentIDs: recency, preferences: preferences), .activate(mail))
-        XCTAssertEqual(ShortcutResolver.action(for: "s", candidates: apps, frontmostID: mail.id, recentIDs: recency, preferences: preferences), .activate(slack))
-        XCTAssertEqual(ShortcutResolver.action(for: "s", candidates: apps, frontmostID: slack.id, recentIDs: recency, preferences: preferences), .activate(safari))
+        XCTAssertEqual(ShortcutResolver.action(for: "s", candidates: apps, frontmostID: mail.id, recentIDs: recency, preferences: preferences), .activate(mail))
+        XCTAssertEqual(ShortcutResolver.action(for: "s", candidates: apps, frontmostID: slack.id, recentIDs: recency, preferences: preferences), .activate(mail))
         XCTAssertEqual(ShortcutResolver.action(for: "s", candidates: apps, frontmostID: safari.id, recentIDs: recency, preferences: preferences), .activate(mail))
+    }
+
+    func testPinnedAppIsExcludedFromDynamicInitialMatching() {
+        let teams = AppCandidate(id: "teams", name: "Microsoft Teams", path: "/Teams.app")
+        let code = AppCandidate(id: "code", name: "T3 Code", path: "/Code.app")
+        let tailscale = AppCandidate(id: "tailscale", name: "Tailscale", path: "/Tailscale.app")
+        let terminal = AppCandidate(id: "terminal", name: "Terminal", path: "/Terminal.app")
+        let preferences = Preferences(bindings: [
+            AppBinding(key: "3", bundleID: code.id, name: code.name, path: code.path)
+        ])
+        XCTAssertEqual(ShortcutResolver.targets(for: "t", candidates: [code, tailscale, terminal], recentIDs: [code.id, tailscale.id, terminal.id], preferences: preferences), [tailscale, terminal])
+        XCTAssertEqual(ShortcutResolver.action(for: "t", candidates: [code, tailscale], frontmostID: tailscale.id, recentIDs: [code.id, tailscale.id], preferences: preferences), .activate(tailscale))
+        XCTAssertEqual(ShortcutResolver.targets(for: "3", candidates: [code, tailscale, terminal], recentIDs: [], preferences: preferences), [code])
+
+        let teamsPin = Preferences(bindings: [
+            AppBinding(key: "t", bundleID: teams.id, name: teams.name, path: teams.path)
+        ])
+        XCTAssertTrue(ShortcutResolver.targets(for: "m", candidates: [teams], recentIDs: [], preferences: teamsPin).isEmpty)
+        XCTAssertEqual(ShortcutResolver.action(for: "m", candidates: [teams], frontmostID: nil, recentIDs: [], preferences: teamsPin), .none)
+        XCTAssertEqual(ShortcutResolver.targets(for: "m", candidates: [teams, mail], recentIDs: [teams.id, mail.id], preferences: teamsPin), [mail])
+    }
+
+    func testDisabledPinFallsBackToDynamicInitialMatching() {
+        let teams = AppCandidate(id: "teams", name: "Microsoft Teams", path: "/Teams.app")
+        let preferences = Preferences(disabledKeys: "t", bindings: [
+            AppBinding(key: "t", bundleID: teams.id, name: teams.name, path: teams.path)
+        ])
+        XCTAssertTrue(ShortcutResolver.targets(for: "t", candidates: [teams], recentIDs: [], preferences: preferences).isEmpty)
+        XCTAssertEqual(ShortcutResolver.targets(for: "m", candidates: [teams], recentIDs: [], preferences: preferences), [teams])
+        XCTAssertEqual(ShortcutResolver.action(for: "m", candidates: [teams], frontmostID: nil, recentIDs: [], preferences: preferences), .activate(teams))
     }
 
     func testPinnedHideActivatesPinFromAnotherMatchingApp() {
@@ -104,7 +134,7 @@ final class ShortcutResolverTests: XCTestCase {
         XCTAssertEqual(ShortcutResolver.action(for: "s", candidates: [slack, signal, safari], frontmostID: nil, recentIDs: [], preferences: Preferences()), .activate(safari))
     }
 
-    func testTargetsIncludeNaturalMatchesWithTheirOwnAlternatePins() {
+    func testTargetsForPinnedKeysExcludeOtherMatchingApps() {
         let teams = AppCandidate(id: "teams", name: "Microsoft Teams", path: "/Teams.app")
         let code = AppCandidate(id: "code", name: "T3 Code", path: "/Code.app")
         let tailscale = AppCandidate(id: "tailscale", name: "Tailscale", path: "/Tailscale.app")
@@ -112,8 +142,9 @@ final class ShortcutResolverTests: XCTestCase {
             AppBinding(key: "t", bundleID: teams.id, name: teams.name, path: teams.path),
             AppBinding(key: "3", bundleID: code.id, name: code.name, path: code.path)
         ])
-        XCTAssertEqual(ShortcutResolver.targets(for: "t", candidates: [code, teams, tailscale], recentIDs: [tailscale.id, code.id], preferences: preferences), [teams, tailscale, code])
+        XCTAssertEqual(ShortcutResolver.targets(for: "t", candidates: [code, teams, tailscale], recentIDs: [tailscale.id, code.id], preferences: preferences), [teams])
         XCTAssertEqual(ShortcutResolver.targets(for: "3", candidates: [code, teams, tailscale], recentIDs: [], preferences: preferences), [code])
+        XCTAssertTrue(ShortcutResolver.targets(for: "m", candidates: [code, teams, tailscale], recentIDs: [], preferences: preferences).isEmpty)
     }
 
     func testHidePinAndDisabledKeyLimitTheDisplayedTargets() {
@@ -124,14 +155,14 @@ final class ShortcutResolverTests: XCTestCase {
         XCTAssertTrue(ShortcutResolver.targets(for: "s", candidates: [mail, safari, slack], recentIDs: [], preferences: preferences).isEmpty)
     }
 
-    func testClosedPinIsTheOnlyTargetUntilItLaunches() {
+    func testPinnedAppRemainsExclusiveBeforeAndAfterLaunching() {
         let binding = AppBinding(key: "s", bundleID: mail.id, name: "Old Mail", path: "/Old/Mail.app")
         var current = mail
         current.isRunning = false
         let preferences = Preferences(bindings: [binding])
         XCTAssertEqual(ShortcutResolver.targets(for: "s", candidates: [current, safari], recentIDs: [], preferences: preferences), [current])
         current.isRunning = true
-        XCTAssertEqual(ShortcutResolver.targets(for: "s", candidates: [current, safari], recentIDs: [], preferences: preferences), [current, safari])
+        XCTAssertEqual(ShortcutResolver.targets(for: "s", candidates: [current, safari], recentIDs: [], preferences: preferences), [current])
     }
 
     func testPublicResolverEntryPointsStillSanitizeDirtyInputs() {

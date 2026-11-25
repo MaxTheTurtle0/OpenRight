@@ -33,9 +33,9 @@ Automated core tests cannot verify real keyboard events, Accessibility permissio
 
 ## Search and app list
 
-- [ ] Settings has a single Apps tab. Apps sharing a shortcut key appear together under that key, with the pinned app first.
-- [ ] Check a group containing an app with a separate pinned key. It appears in both groups when both shortcuts can reach it.
-- [ ] Disable a pinned key or use Hide on a pin. Groups follow the resolver; apps without an available displayed key remain editable under No key.
+- [ ] Settings has a single Apps tab. Unpinned apps sharing a shortcut key appear together under that key; a pinned key only targets its pinned app.
+- [ ] Pin an app to an alternate key (such as T3 Code on 3). It appears only under its pinned key and does not cycle under its initial letter.
+- [ ] Pin a key that another running app starts with, or disable a key. Groups follow the resolver; apps without an available displayed key remain editable under No key.
 - [ ] There are no large page titles, descriptions, sidebar taglines, or repeated Running/Pinned row labels. Closed and hidden states remain visible.
 - [ ] At the minimum Settings window size, controls fit and content scrolls. The Apps filter remains visible while the list scrolls.
 - [ ] Filter the Apps list. Opening an app and managing its keys remain available on each matching row.

@@ -50,14 +50,17 @@ public enum ShortcutResolver {
                     ?? AppCandidate(id: binding.bundleID, name: binding.name, path: binding.path, isRunning: false)
                 return [closed]
             }
-            if binding.behavior == .hide { return [pinned] }
-            let others = orderedByRecency(
-                running.filter { $0.id != pinned.id && ShortcutKey.initial(for: $0.name) == key },
-                recentIDs: recentIDs
-            )
-            return [pinned] + others
+            return [pinned]
         }
-        return orderedByRecency(running.filter { ShortcutKey.initial(for: $0.name) == key }, recentIDs: recentIDs)
+        let activePinnedIDs = Set(
+            preferences.bindings
+                .filter { !preferences.disabledKeys.contains($0.key) }
+                .map(\.bundleID)
+        )
+        return orderedByRecency(
+            running.filter { !activePinnedIDs.contains($0.id) && ShortcutKey.initial(for: $0.name) == key },
+            recentIDs: recentIDs
+        )
     }
 }
 

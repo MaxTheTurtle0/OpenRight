@@ -446,7 +446,7 @@ struct AppKeysEditor: View {
                                             model.preferences.bindings[index].behavior = value
                                         }
                                     )) {
-                                        Text("Cycle").tag(RepeatBehavior.cycle)
+                                        Text("Focus").tag(RepeatBehavior.cycle)
                                         Text("Hide").tag(RepeatBehavior.hide)
                                     }
                                     .labelsHidden().frame(width: 100)
@@ -468,7 +468,7 @@ struct AppKeysEditor: View {
                     .accessibilityLabel("Pinned letter or number")
                     .accessibilityIdentifier("pin-key")
                 Picker("Repeat", selection: $behavior) {
-                    Text("Cycle").tag(RepeatBehavior.cycle)
+                    Text("Focus").tag(RepeatBehavior.cycle)
                     Text("Hide").tag(RepeatBehavior.hide)
                 }
                 .frame(width: 150)
@@ -487,7 +487,7 @@ struct AppKeysEditor: View {
                     .font(.system(size: 11)).foregroundStyle(.orange)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            Text("Use one letter or number. A pinned key works even when the app is closed.")
+            Text("Use one letter or number. A pinned key only targets this app and works even when closed.")
                 .font(.system(size: 11)).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
