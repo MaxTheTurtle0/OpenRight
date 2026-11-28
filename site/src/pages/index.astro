@@ -1,0 +1,621 @@
+---
+import Base from "../layouts/Base.astro";
+
+const repo = "https://github.com/MaxTheTurtle0/OpenRight";
+const latest = `${repo}/releases/latest`;
+const dmg = `${repo}/releases/latest/download/OpenRight.dmg`;
+
+// All facts below come from the repository README.
+type Key = { glyph?: string; label: string; accent?: boolean };
+const cmd: Key = { glyph: "⌘", label: "right cmd", accent: true };
+const shortcuts: { keys: Key[]; action: string }[] = [
+  { keys: [cmd, { label: "A–Z" }], action: "Switch to the running app whose name starts with that letter." },
+  {
+    keys: [cmd, { label: "same letter" }],
+    action: "Cycle through apps with that letter, or hide the app. You choose which in Settings.",
+  },
+  {
+    keys: [cmd, { glyph: "⌥", label: "option" }, { label: "A–Z / 0–9" }],
+    action: "Pin that key to the app in front. The key then targets only that app and launches it if it is closed. Apps with an active pin answer only to their pinned keys.",
+  },
+  { keys: [cmd, { label: "space" }], action: "Search installed apps. Arrow keys to pick, Return to open, Esc to close." },
+];
+
+// Running apps in the hero demo. Two pairs share a letter to show cycling.
+const apps = [
+  { name: "Calendar", hue: 4 },
+  { name: "Figma", hue: 280 },
+  { name: "Finder", hue: 215 },
+  { name: "Mail", hue: 230 },
+  { name: "Notes", hue: 85 },
+  { name: "Safari", hue: 200 },
+  { name: "Slack", hue: 320 },
+  { name: "Terminal", hue: 150 },
+];
+---
+
+<Base
+  title="OpenRight — Right Command app switcher for macOS"
+  description="Free, open-source macOS app switcher. Hold Right Command and press an app's first letter to switch to it."
+>
+  <header class="nav wrap">
+    <a class="brand" href="#top" aria-label="OpenRight home">
+      <img src="/icon-96.png" width="30" height="30" alt="" />
+      <span>OpenRight</span>
+    </a>
+  </header>
+
+  <main id="top">
+    <section class="hero wrap">
+      <div class="hero-copy">
+        <h1 class="rise" style="--i:0">
+          Hold <span class="hl">Right Command</span>.<br />
+          Press a letter.<br />
+          <em>You're there.</em>
+        </h1>
+        <p class="lede rise" style="--i:1">
+          A free, open-source app switcher for macOS. Hold Right Command and press an app's first letter to switch
+          to it. Your Left Command shortcuts keep working.
+        </p>
+        <div class="ctas rise" style="--i:2">
+          <a class="btn primary" href={dmg}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 20h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            Download for Mac
+          </a>
+          <a class="btn ghost" href={repo}>View on GitHub</a>
+        </div>
+        <p class="req-line rise" style="--i:3">macOS 13 or later · Apple Silicon and Intel</p>
+      </div>
+
+      <figure class="demo rise" style="--i:2" tabindex="0" aria-label="Shortcut demo">
+        <div class="keys" aria-hidden="true">
+          <span class="cap accent" style="--w:2.1"><span class="glyph">⌘</span><span class="label">right command</span></span>
+          <span class="plus">+</span>
+          <span class="cap center letter" id="letter">S</span>
+        </div>
+        <ul class="apps" aria-hidden="true">
+          {
+            apps.map((a) => (
+              <li data-name={a.name} style={`--h:${a.hue}`}>
+                <span class="tile">{a.name[0]}</span>
+                <span class="name">{a.name}</span>
+              </li>
+            ))
+          }
+        </ul>
+        <figcaption class="readout">
+          <span class="status" aria-live="polite">
+            <span id="result">Switched to <b>Safari</b>.</span>
+            <span id="next">Press S again for Slack.</span>
+          </span>
+          <span class="try">Click this card, then press any letter to try it.</span>
+        </figcaption>
+      </figure>
+    </section>
+
+    <section class="shortcuts wrap" id="shortcuts">
+      <div class="head reveal">
+        <h2>Shortcuts</h2>
+        <p>Four combinations cover everything OpenRight does.</p>
+      </div>
+      <ul class="sc-list reveal">
+        {
+          shortcuts.map((s) => (
+            <li>
+              <span class="combo">
+                {s.keys.map((k, i) => (
+                  <>
+                    {i > 0 && <span class="plus">+</span>}
+                    {k.glyph ? (
+                      <span class={`cap sm ${k.accent ? "accent" : ""}`} style={k.accent ? "--w:1.7" : ""}>
+                        <span class="glyph">{k.glyph}</span>
+                        <span class="label">{k.label}</span>
+                      </span>
+                    ) : (
+                      <span class="cap sm center">{k.label}</span>
+                    )}
+                  </>
+                ))}
+              </span>
+              <span class="sc-action">{s.action}</span>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="sc-note reveal">
+        Rather use another trigger? Settings also offers Right Option or Control + Option. Search opens from the
+        menu bar too.
+      </p>
+    </section>
+
+    <section class="download" id="download">
+      <div class="wrap dl-inner">
+        <div class="dl-copy reveal">
+          <img src="/icon-192.png" width="64" height="64" alt="" class="dl-icon" loading="lazy" />
+          <h2>Get OpenRight</h2>
+          <p>
+            Free and MIT-licensed. Open the DMG, drag OpenRight to Applications, and allow Accessibility access when
+            it asks. It lives in the menu bar.
+          </p>
+          <div class="ctas">
+            <a class="btn primary invert" href={dmg}>Download the DMG</a>
+            <a class="btn ghost invert" href={`${repo}/releases`}>All releases</a>
+          </div>
+        </div>
+
+        <div class="dl-side reveal" style="--i:1">
+          <dl class="req">
+            <div><dt>Requires</dt><dd>macOS 13 Ventura or later</dd></div>
+            <div><dt>Runs on</dt><dd>Apple Silicon and Intel</dd></div>
+            <div><dt>Permissions</dt><dd>Accessibility. macOS may also ask for Input Monitoring.</dd></div>
+            <div><dt>Signed</dt><dd>Developer ID, notarized by Apple</dd></div>
+            <div><dt>Privacy</dt><dd>Records nothing you type. No analytics.</dd></div>
+          </dl>
+          <a class="src" href={`${repo}#build-locally`}>Build it from source →</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot wrap">
+    <div class="foot-brand">
+      <img src="/icon-96.png" width="22" height="22" alt="" loading="lazy" />
+      <span>OpenRight</span>
+    </div>
+    <p class="fine">
+      An independent implementation inspired by <a href="https://lowtechguys.com/rcmd/">rcmd</a>. It does not contain rcmd
+      code, assets, or configuration.
+    </p>
+    <nav class="foot-links" aria-label="Footer">
+      <a href={repo}>GitHub</a>
+      <a href={latest}>Releases</a>
+      <a href={`${repo}/blob/main/LICENSE`}>License</a>
+      <a class="more" href="https://ma2.dev">More projects by Andrei →</a>
+    </nav>
+  </footer>
+
+  <script>
+    // Reveal on scroll
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            e.target.classList.add("in");
+            io.unobserve(e.target);
+          }
+        }
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" },
+    );
+    document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+
+    // Hero demo: a letter focuses the matching app; the same letter again cycles.
+    const letter = document.getElementById("letter");
+    const result = document.getElementById("result");
+    const next = document.getElementById("next");
+    const items = [...document.querySelectorAll<HTMLLIElement>(".apps li")];
+    let last = "";
+    let turn = 0;
+
+    function press(ch: string) {
+      if (!letter || !result || !next) return;
+      const matches = items.filter((li) => li.dataset.name!.toUpperCase().startsWith(ch));
+      turn = ch === last && matches.length ? (turn + 1) % matches.length : 0;
+      last = ch;
+      const active = matches[turn];
+
+      letter.textContent = ch;
+      letter.classList.remove("press");
+      void letter.offsetWidth;
+      letter.classList.add("press");
+
+      for (const li of items) {
+        li.classList.toggle("match", matches.includes(li));
+        li.classList.toggle("active", li === active);
+      }
+
+      if (!active) {
+        result.textContent = `No running app starts with ${ch}.`;
+        next.textContent = "";
+        return;
+      }
+      result.innerHTML = `Switched to <b>${active.dataset.name}</b>.`;
+      next.textContent =
+        matches.length > 1 ? `Press ${ch} again for ${matches[(turn + 1) % matches.length].dataset.name}.` : "";
+    }
+
+    press("S");
+
+    // Letters only drive the demo while the card has focus (WCAG 2.1.4).
+    document.querySelector(".demo")?.addEventListener("keydown", (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
+      if (/^[a-z]$/i.test(e.key)) {
+        press(e.key.toUpperCase());
+      }
+    });
+  </script>
+</Base>
+
+<style>
+  /* ---------- Nav ---------- */
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 22px;
+    padding-bottom: 22px;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 19px;
+    letter-spacing: -0.01em;
+  }
+  .brand img {
+    border-radius: 8px;
+  }
+  /* ---------- Hero ---------- */
+  .hero {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: clamp(28px, 5vw, 72px);
+    align-items: center;
+    padding-top: clamp(28px, 6vw, 72px);
+    padding-bottom: clamp(56px, 8vw, 104px);
+  }
+  h1 {
+    font-size: clamp(44px, 7.2vw, 92px);
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+    font-weight: 750;
+    margin: 0 0 26px;
+  }
+  h1 em {
+    font-style: normal;
+    font-weight: 300;
+    color: var(--ink-2);
+  }
+  .hl {
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  .lede {
+    font-size: clamp(17px, 1.5vw, 19.5px);
+    color: var(--ink-2);
+    max-width: 32em;
+    margin: 0 0 30px;
+  }
+  .ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .req-line {
+    margin: 20px 0 0;
+    font-size: 15px;
+    color: var(--ink-2);
+  }
+
+  /* ---------- Hero demo ---------- */
+  .demo {
+    margin: 0;
+    border: 1px solid var(--rule);
+    border-radius: 28px;
+    padding: clamp(22px, 3.4vw, 36px);
+    background:
+      radial-gradient(circle at 1px 1px, var(--rule) 1px, transparent 1.4px) 0 0 / 14px 14px,
+      var(--paper-2);
+    box-shadow: 0 30px 60px -30px #00000040;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+  }
+  .demo:focus,
+  .demo:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow:
+      0 0 0 1px var(--accent),
+      0 30px 60px -30px #00000040;
+  }
+  .keys {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    font-size: clamp(16px, 2.2vw, 22px);
+  }
+  .keys .cap {
+    font-size: 1em;
+  }
+  .keys .plus {
+    font-family: var(--font-mono);
+    color: var(--ink-3);
+  }
+  .letter {
+    font-size: 1.6em !important;
+    font-weight: 600;
+  }
+  .letter.press {
+    animation: tap 0.42s cubic-bezier(0.3, 0.7, 0.3, 1);
+  }
+  @keyframes tap {
+    30% {
+      transform: translateY(4px);
+      box-shadow: var(--cap-shadow), 0 0 0 var(--cap-edge);
+      background: var(--accent-soft);
+    }
+  }
+  .apps {
+    list-style: none;
+    margin: clamp(24px, 3vw, 34px) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px clamp(8px, 1.6vw, 16px);
+  }
+  .apps li {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+  }
+  .apps li .tile {
+    opacity: 0.45;
+  }
+  .apps li.match .tile {
+    opacity: 0.75;
+  }
+  .apps li.active .tile {
+    opacity: 1;
+  }
+  .tile {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    max-width: 56px;
+    aspect-ratio: 1;
+    border-radius: 24%;
+    font-weight: 700;
+    font-size: clamp(18px, 2vw, 22px);
+    color: #fff;
+    background: linear-gradient(160deg, hsl(var(--h) 70% 62%), hsl(var(--h) 65% 46%));
+    box-shadow: 0 1px 0 #ffffff40 inset, 0 2px 6px #0000002a;
+    transition: transform 0.25s cubic-bezier(0.3, 0.7, 0.3, 1), box-shadow 0.25s ease, opacity 0.25s ease;
+  }
+  .apps li.active .tile {
+    transform: translateY(-6px) scale(1.08);
+    box-shadow:
+      0 0 0 2px var(--paper-2),
+      0 0 0 4px var(--accent),
+      0 10px 18px -6px #00000050;
+  }
+  .name {
+    font-size: 13px;
+    color: var(--ink-2);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .readout {
+    margin-top: clamp(22px, 3vw, 30px);
+    padding-top: 18px;
+    border-top: 1px dashed var(--rule);
+  }
+  .status {
+    display: grid;
+    gap: 2px;
+    min-height: 3.2em;
+  }
+  #result {
+    font-size: 18px;
+  }
+  #result :global(b) {
+    color: var(--accent);
+  }
+  #next {
+    color: var(--ink-2);
+  }
+  .try {
+    display: block;
+    margin-top: 10px;
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+
+  /* ---------- Section heads ---------- */
+  h2 {
+    font-size: clamp(32px, 4.4vw, 54px);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-weight: 700;
+    margin: 0;
+  }
+  .head {
+    margin-bottom: clamp(24px, 3.5vw, 40px);
+  }
+  .head p {
+    margin: 12px 0 0;
+    color: var(--ink-2);
+    font-size: 18px;
+  }
+
+  /* ---------- Shortcuts ---------- */
+  .shortcuts {
+    padding-top: clamp(24px, 4vw, 48px);
+    padding-bottom: clamp(56px, 8vw, 104px);
+  }
+  .sc-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--rule);
+    border-radius: 22px;
+    background: var(--paper-2);
+    overflow: hidden;
+  }
+  .sc-list li {
+    display: grid;
+    grid-template-columns: minmax(0, 340px) 1fr;
+    gap: 24px;
+    align-items: center;
+    padding: 22px clamp(18px, 3vw, 32px);
+  }
+  .sc-list li + li {
+    border-top: 1px solid var(--rule);
+  }
+  .sc-list li > * {
+    min-width: 0;
+  }
+  .sc-action {
+    font-size: 17px;
+  }
+  .sc-note {
+    margin: 18px 0 0;
+    color: var(--ink-2);
+  }
+
+  /* ---------- Download band ---------- */
+  .download {
+    background: var(--band);
+    color: var(--band-ink);
+    padding: clamp(64px, 9vw, 112px) 0;
+  }
+  .dl-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(32px, 6vw, 80px);
+    align-items: center;
+  }
+  .dl-inner > * {
+    min-width: 0;
+  }
+  .dl-icon {
+    border-radius: 15px;
+    box-shadow: 0 12px 40px color-mix(in srgb, var(--accent) 50%, transparent);
+  }
+  .dl-copy h2 {
+    font-size: clamp(40px, 5.4vw, 68px);
+    margin-top: 22px;
+  }
+  .dl-copy p {
+    color: color-mix(in srgb, var(--band-ink) 72%, transparent);
+    max-width: 30em;
+    margin: 16px 0 28px;
+  }
+  .btn.invert.primary {
+    background: var(--band-ink);
+    color: var(--band);
+    border-color: var(--band-ink);
+  }
+  .btn.invert.ghost {
+    color: var(--band-ink);
+    border-color: color-mix(in srgb, var(--band-ink) 45%, transparent);
+  }
+  .btn.invert.ghost:hover {
+    background: var(--band-ink);
+    color: var(--band);
+  }
+  .req {
+    margin: 0;
+    border-top: 1px solid color-mix(in srgb, var(--band-ink) 18%, transparent);
+  }
+  .req div {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--band-ink) 18%, transparent);
+  }
+  .req dt {
+    color: color-mix(in srgb, var(--band-ink) 55%, transparent);
+  }
+  .req dd {
+    margin: 0;
+  }
+  .src {
+    display: inline-block;
+    margin-top: 20px;
+    color: color-mix(in srgb, var(--band-ink) 80%, transparent);
+    text-decoration: none;
+  }
+  .src:hover {
+    color: var(--band-ink);
+    text-decoration: underline;
+  }
+
+  /* ---------- Footer ---------- */
+  .foot {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 24px;
+    align-items: center;
+    padding-top: 36px;
+    padding-bottom: 44px;
+  }
+  .foot-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+  }
+  .foot-brand img {
+    border-radius: 6px;
+  }
+  .fine {
+    margin: 0;
+    max-width: 42em;
+    font-size: 14px;
+    color: var(--ink-3);
+  }
+  .foot-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    font-size: 15px;
+  }
+  .foot-links a {
+    text-decoration: none;
+    color: var(--ink-2);
+  }
+  .foot-links a:hover {
+    color: var(--ink);
+    text-decoration: underline;
+  }
+  .foot-links .more {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 960px) {
+    .hero,
+    .dl-inner {
+      grid-template-columns: 1fr;
+    }
+    .demo {
+      max-width: 560px;
+    }
+    .foot {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 680px) {
+    .sc-list li {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .req div {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+  }
+  @media (max-width: 420px) {
+    .hl {
+      white-space: normal;
+    }
+  }
+</style>

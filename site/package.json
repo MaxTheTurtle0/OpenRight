@@ -1,0 +1,17 @@
+{
+  "name": "openright-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bunx --bun astro dev --host",
+    "build": "bunx --bun astro build",
+    "preview": "bunx --bun astro preview --host",
+    "deploy": "bunx --bun astro build && bunx --bun wrangler deploy"
+  },
+  "dependencies": {
+    "astro": "^5.18.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.158.0"
+  }
+}
