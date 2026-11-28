@@ -16,7 +16,7 @@ const shortcuts: { keys: Key[]; action: string }[] = [
   },
   {
     keys: [cmd, { glyph: "⌥", label: "option" }, { label: "A–Z / 0–9" }],
-    action: "Pin that key to the app in front. The key then targets only that app and launches it if it is closed. Pinned apps answer only to their pinned keys.",
+    action: "Pin that key to the app in front. The key then targets only that app and launches it if it is closed. Apps with an active pin answer only to their pinned keys.",
   },
   { keys: [cmd, { label: "space" }], action: "Search installed apps. Arrow keys to pick, Return to open, Esc to close." },
 ];
@@ -67,7 +67,7 @@ const apps = [
         <p class="req-line rise" style="--i:3">macOS 13 or later · Apple Silicon and Intel</p>
       </div>
 
-      <figure class="demo rise" style="--i:2">
+      <figure class="demo rise" style="--i:2" tabindex="0" aria-label="Shortcut demo">
         <div class="keys" aria-hidden="true">
           <span class="cap accent" style="--w:2.1"><span class="glyph">⌘</span><span class="label">right command</span></span>
           <span class="plus">+</span>
@@ -88,7 +88,7 @@ const apps = [
             <span id="result">Switched to <b>Safari</b>.</span>
             <span id="next">Press S again for Slack.</span>
           </span>
-          <span class="try">Press any letter on your keyboard to try it.</span>
+          <span class="try">Click this card, then press any letter to try it.</span>
         </figcaption>
       </figure>
     </section>
@@ -226,10 +226,9 @@ const apps = [
 
     press("S");
 
-    window.addEventListener("keydown", (e) => {
+    // Letters only drive the demo while the card has focus (WCAG 2.1.4).
+    document.querySelector(".demo")?.addEventListener("keydown", (e) => {
       if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
-      // Only while nothing is focused, so keyboard users on a link are not affected.
-      if (document.activeElement && document.activeElement !== document.body) return;
       if (/^[a-z]$/i.test(e.key)) {
         press(e.key.toUpperCase());
       }
@@ -311,6 +310,16 @@ const apps = [
       radial-gradient(circle at 1px 1px, var(--rule) 1px, transparent 1.4px) 0 0 / 14px 14px,
       var(--paper-2);
     box-shadow: 0 30px 60px -30px #00000040;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+  }
+  .demo:focus,
+  .demo:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow:
+      0 0 0 1px var(--accent),
+      0 30px 60px -30px #00000040;
   }
   .keys {
     display: flex;
