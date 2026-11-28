@@ -3,10 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "astro dev --host",
-    "build": "astro build",
-    "preview": "astro preview --host",
-    "deploy": "astro build && wrangler deploy"
+    "dev": "bunx --bun astro dev --host",
+    "build": "bunx --bun astro build",
+    "preview": "bunx --bun astro preview --host",
+    "deploy": "bunx --bun astro build && bunx --bun wrangler deploy"
   },
   "dependencies": {
     "astro": "^5.18.0"

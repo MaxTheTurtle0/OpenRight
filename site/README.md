@@ -6,14 +6,14 @@ All copy (features, shortcuts, requirements) comes from the repository [README](
 
 ## Run locally
 
-Requires Node 18.20+.
+Requires [Bun](https://bun.sh) (tested with 1.4.2). Node is not needed: the scripts run Astro and Wrangler on the Bun runtime (`bunx --bun`).
 
 ```sh
 cd site
-npm install
-npm run dev        # http://localhost:4321, also bound to the LAN/tailnet
-npm run build      # static output in dist/
-npm run preview    # serve dist/
+bun install
+bun run dev        # http://localhost:4321, also bound to the LAN/tailnet
+bun run build      # static output in dist/
+bun run preview    # serve dist/
 ```
 
 ## Deploy
@@ -24,7 +24,7 @@ npm run preview    # serve dist/
 cd site
 export CLOUDFLARE_API_TOKEN=...   # token with Workers Scripts + Workers Routes/Custom Domains edit
 export CLOUDFLARE_ACCOUNT_ID=...
-npm run deploy                    # astro build && wrangler deploy
+bun run deploy                    # astro build && wrangler deploy
 ```
 
 Verify with `curl -I https://openright.ma2.dev`.
