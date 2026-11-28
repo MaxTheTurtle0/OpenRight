@@ -23,7 +23,6 @@
   --font-display: "Bricolage Grotesque", ui-sans-serif, sans-serif;
   --font-mono: "Martian Mono", ui-monospace, monospace;
 
-  --radius: 14px;
   --max: 1180px;
   --gutter: clamp(16px, 4vw, 40px);
 }

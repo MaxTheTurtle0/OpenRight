@@ -16,7 +16,7 @@ const shortcuts: { keys: Key[]; action: string }[] = [
   },
   {
     keys: [cmd, { glyph: "⌥", label: "option" }, { label: "A–Z / 0–9" }],
-    action: "Pin that key to the app in front. The key then always opens that app, and launches it if it is closed.",
+    action: "Pin that key to the app in front. The key then targets only that app, and launches it if it is closed.",
   },
   { keys: [cmd, { label: "space" }], action: "Search installed apps. Arrow keys to pick, Return to open, Esc to close." },
 ];
@@ -49,7 +49,7 @@ const apps = [
     <section class="hero wrap">
       <div class="hero-copy">
         <h1 class="rise" style="--i:0">
-          Hold <span class="hl">Right&nbsp;Command</span>.<br />
+          Hold <span class="hl">Right Command</span>.<br />
           Press a letter.<br />
           <em>You're there.</em>
         </h1>
@@ -83,11 +83,13 @@ const apps = [
             ))
           }
         </ul>
-        <figcaption class="readout" aria-live="polite">
-          <span id="result">Switched to <b>Safari</b>.</span>
-          <span id="next">Press S again for Slack.</span>
+        <figcaption class="readout">
+          <span class="status" aria-live="polite">
+            <span id="result">Switched to <b>Safari</b>.</span>
+            <span id="next">Press S again for Slack.</span>
+          </span>
+          <span class="try">Press any letter on your keyboard to try it.</span>
         </figcaption>
-        <p class="try">Press any letter on your keyboard to try it.</p>
       </figure>
     </section>
 
@@ -137,7 +139,7 @@ const apps = [
           </p>
           <div class="ctas">
             <a class="btn primary invert" href={dmg}>Download the DMG</a>
-            <a class="btn ghost invert" href={latest}>All releases</a>
+            <a class="btn ghost invert" href={`${repo}/releases`}>All releases</a>
           </div>
         </div>
 
@@ -224,23 +226,10 @@ const apps = [
 
     press("S");
 
-    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let userTyped = false;
-    if (!reduce) {
-      const seq = ["S", "S", "T", "F", "F", "M", "N", "C"];
-      let i = 0;
-      const timer = setInterval(() => {
-        if (userTyped) return clearInterval(timer);
-        i = (i + 1) % seq.length;
-        press(seq[i]);
-      }, 1700);
-    }
-
     window.addEventListener("keydown", (e) => {
       if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
       if (e.target instanceof HTMLElement && e.target.closest("input, textarea, [contenteditable]")) return;
       if (/^[a-z]$/i.test(e.key)) {
-        userTyped = true;
         press(e.key.toUpperCase());
       }
     });
@@ -308,7 +297,7 @@ const apps = [
   .req-line {
     margin: 20px 0 0;
     font-size: 15px;
-    color: var(--ink-3);
+    color: var(--ink-2);
   }
 
   /* ---------- Hero demo ---------- */
@@ -404,9 +393,11 @@ const apps = [
     margin-top: clamp(22px, 3vw, 30px);
     padding-top: 18px;
     border-top: 1px dashed var(--rule);
+  }
+  .status {
     display: grid;
     gap: 2px;
-    min-height: 4.4em;
+    min-height: 3.2em;
   }
   #result {
     font-size: 18px;
@@ -418,9 +409,10 @@ const apps = [
     color: var(--ink-2);
   }
   .try {
-    margin: 10px 0 0;
+    display: block;
+    margin-top: 10px;
     font-size: 14px;
-    color: var(--ink-3);
+    color: var(--ink-2);
   }
 
   /* ---------- Section heads ---------- */
