@@ -16,7 +16,7 @@ const shortcuts: { keys: Key[]; action: string }[] = [
   },
   {
     keys: [cmd, { glyph: "⌥", label: "option" }, { label: "A–Z / 0–9" }],
-    action: "Pin that key to the app in front. The key then targets only that app, and launches it if it is closed.",
+    action: "Pin that key to the app in front. The key then targets only that app and launches it if it is closed. Pinned apps answer only to their pinned keys.",
   },
   { keys: [cmd, { label: "space" }], action: "Search installed apps. Arrow keys to pick, Return to open, Esc to close." },
 ];
@@ -228,7 +228,8 @@ const apps = [
 
     window.addEventListener("keydown", (e) => {
       if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
-      if (e.target instanceof HTMLElement && e.target.closest("input, textarea, [contenteditable]")) return;
+      // Only while nothing is focused, so keyboard users on a link are not affected.
+      if (document.activeElement && document.activeElement !== document.body) return;
       if (/^[a-z]$/i.test(e.key)) {
         press(e.key.toUpperCase());
       }
@@ -351,13 +352,14 @@ const apps = [
     display: grid;
     justify-items: center;
     gap: 6px;
-    opacity: 0.45;
-    transition: opacity 0.25s ease;
   }
-  .apps li.match {
+  .apps li .tile {
+    opacity: 0.45;
+  }
+  .apps li.match .tile {
     opacity: 0.75;
   }
-  .apps li.active {
+  .apps li.active .tile {
     opacity: 1;
   }
   .tile {
@@ -372,7 +374,7 @@ const apps = [
     color: #fff;
     background: linear-gradient(160deg, hsl(var(--h) 70% 62%), hsl(var(--h) 65% 46%));
     box-shadow: 0 1px 0 #ffffff40 inset, 0 2px 6px #0000002a;
-    transition: transform 0.25s cubic-bezier(0.3, 0.7, 0.3, 1), box-shadow 0.25s ease;
+    transition: transform 0.25s cubic-bezier(0.3, 0.7, 0.3, 1), box-shadow 0.25s ease, opacity 0.25s ease;
   }
   .apps li.active .tile {
     transform: translateY(-6px) scale(1.08);
